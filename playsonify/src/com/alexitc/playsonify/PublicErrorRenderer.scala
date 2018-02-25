@@ -5,17 +5,22 @@ import play.api.libs.json.{JsValue, Json}
 
 class PublicErrorRenderer {
 
+  import PublicErrorRenderer._
+
+  /**
+   * Converts a [[PublicError]] to a [[JsValue]].
+   */
   def renderPublicError(publicError: PublicError): JsValue = publicError match {
     case e: GenericPublicError =>
       val obj = Json.obj(
-        "type" -> "generic-error",
+        "type" -> GenericErrorType,
         "message" -> e.message
       )
       Json.toJson(obj)
 
     case e: FieldValidationError =>
       val obj = Json.obj(
-        "type" -> "field-validation-error",
+        "type" -> FieldValidationErrorType,
         "field" -> e.field,
         "message" -> e.message
       )
@@ -23,7 +28,7 @@ class PublicErrorRenderer {
 
     case e: HeaderValidationError =>
       val obj = Json.obj(
-        "type" -> "header-validation-error",
+        "type" -> HeaderValidationErrorType,
         "header" -> e.header,
         "message" -> e.message
       )
@@ -32,8 +37,15 @@ class PublicErrorRenderer {
 
   def renderPrivateError(errorId: ErrorId) = {
     Json.obj(
-      "type" -> "server-error",
+      "type" -> ServerErrorType,
       "errorId" -> errorId.string
     )
   }
+}
+
+object PublicErrorRenderer {
+  val GenericErrorType = "generic-error"
+  val FieldValidationErrorType = "field-validation-error"
+  val HeaderValidationErrorType = "header-validation-error"
+  val ServerErrorType = "server-error"
 }
