@@ -1,9 +1,8 @@
 package com.alexitc.playsonify
 
+import com.alexitc.playsonify.core.FutureApplicationResult
 import play.api.libs.json.JsValue
 import play.api.mvc.Request
-
-import com.alexitc.playsonify.core.FutureApplicationResult
 
 /**
  * Allow to authenticate a request and map it to a value with type [[T]].

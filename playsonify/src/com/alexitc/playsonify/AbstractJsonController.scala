@@ -12,12 +12,25 @@ import scala.concurrent.Future
 import scala.util.control.NonFatal
 
 /**
- * Base Controller designed to process actions that expect an input model
+ * Abstract Controller designed to process actions that expect an input model
  * and computes an output model.
  *
  * The controller handles the json serialization and deserialization as well
  * as the error responses and http status codes.
  *
+ * A common way for using this class is like:
+ * {{{
+ *   class MyController @Inject() (components: MyJsonControllerComponents)
+ *       extends MyJsonController(components) {
+ *
+ *     ...
+ *   }
+ * }}}
+ *
+ * Where MyJsonControllerComponents is a custom implementation for [[JsonControllerComponents]]
+ * and MyJsonController is the custom implementation for [[AbstractJsonController]].
+ *
+ * @param components the components used by the logic of this JsonController.
  * @tparam A the value type for an authenticated request, like User or UserId.
  */
 abstract class AbstractJsonController[A] (
@@ -51,7 +64,17 @@ abstract class AbstractJsonController[A] (
    *
    * The model [[R]] is wrapped in a [[RequestContext]].
    *
-   * Note: This method is intended to be used on public APIs.
+   * Note: The request will not be authenticated.
+   *
+   * Example:
+   * {{{
+   *   def createUser = publicWithInput(Created) { context: PublicRequestContextWithModel[CreateUserModel] =>
+   *     ...
+   *   }
+   * }}}
+   *
+   * Where there is an implicit deserializer for the CreateUserModel class, in case of a successful result,
+   * the HTTP status Created (201) will be returned.
    *
    * @param successStatus the http status for a successful response
    * @param block the block to execute
@@ -75,7 +98,17 @@ abstract class AbstractJsonController[A] (
   }
 
   /**
-   * Sets a default successStatus.
+   * Sets Ok as the default successStatus.
+   *
+   * Example:
+   * {{{
+   *   def login = publicWithInput { context: PublicRequestContextWithModel[LoginModel] =>
+   *     ...
+   *   }
+   * }}}
+   *
+   * Where there is an implicit deserializer for the LoginModel class, in case of a successful result,
+   * the HTTP status Ok (200) will be returned.
    */
   def publicWithInput[R: Reads, M](
       block: PublicRequestContextWithModel[R] => FutureApplicationResult[M])(
@@ -88,7 +121,16 @@ abstract class AbstractJsonController[A] (
    * Execute an asynchronous action that doesn't need an input model
    * and returns the model [[M]] on success.
    *
-   * Note: This method is intended to be used on public APIs.
+   * Note: The request will not be authenticated.
+   *
+   * Example:
+   * {{{
+   *   def verifyEmail(token: String) = publicNoInput { context: PublicRequestContext =>
+   *     ...
+   *   }
+   * }}}
+   *
+   * In case of a successful result, the HTTP status Ok (200) will be returned.
    *
    * @param successStatus the http status for a successful response
    * @param block the block to execute
@@ -108,6 +150,15 @@ abstract class AbstractJsonController[A] (
 
   /**
    * Sets a default successStatus.
+   *
+   * Example:
+   * {{{
+   *   def verifyEmail(token: String) = publicNoInput(Created) { context: PublicRequestContext =>
+   *     ...
+   *   }
+   * }}}
+   *
+   * In case of a successful result, the HTTP status Created (201) will be returned.
    */
   def publicNoInput[M](
       block: PublicRequestContext => FutureApplicationResult[M])(
@@ -121,7 +172,17 @@ abstract class AbstractJsonController[A] (
    * and produces the model [[M]] on success, the http status in
    * case of a successful result will be taken from successStatus param.
    *
-   * Note: This method is intended to be on APIs requiring authentication.
+   * Note: The request will be authenticated using your custom [[AbstractAuthenticatorService]].
+   *
+   * Example:
+   * {{{
+   *   def setPreferences = authenticatedWithInput(Ok) { context: AuthenticatedRequestContextWithModel[UserId, SetUserPreferencesModel] =>
+   *     ...
+   *   }
+   * }}}
+   *
+   * Where UserId is what your custom [[AbstractAuthenticatorService]] returns on authenticated
+   * requests, also, there is an implicit deserializer for the SetUserPreferencesModel class.
    *
    * @param successStatus the http status for a successful response
    * @param block the block to execute
@@ -146,7 +207,19 @@ abstract class AbstractJsonController[A] (
   }
 
   /**
-   * Sets a default successStatus.
+   * Sets Ok as the default successStatus.
+   *
+   * Note: The request will be authenticated using your custom [[AbstractAuthenticatorService]].
+   *
+   * Example:
+   * {{{
+   *   def setPreferences = authenticatedWithInput { context: AuthenticatedRequestContextWithModel[UserId, SetUserPreferencesModel] =>
+   *     ...
+   *   }
+   * }}}
+   *
+   * Where UserId is what your custom [[AbstractAuthenticatorService]] returns on authenticated
+   * requests, also, there is an implicit deserializer for the SetUserPreferencesModel class.
    */
   def authenticatedWithInput[R: Reads, M](
       block: AuthenticatedRequestContextWithModel[A, R] => FutureApplicationResult[M])(
@@ -159,7 +232,17 @@ abstract class AbstractJsonController[A] (
    * Execute an asynchronous action that doesn't need an input model
    * and returns the model [[M]] on success.
    *
-   * Note: This method is intended to be on APIs requiring authentication.
+   * Note: The request will be authenticated using your custom [[AbstractAuthenticatorService]].
+   *
+   * Example:
+   * {{{
+   *   def whoAmI() = authenticatedNoInput { context: AuthenticatedRequestContext[UserId] =>
+   *     ...
+   *   }
+   * }}}
+   *
+   * Where UserId is what your custom [[AbstractAuthenticatorService]] returns on authenticated
+   * requests.
    *
    * @param successStatus the http status for a successful response
    * @param block the block to execute
@@ -182,7 +265,19 @@ abstract class AbstractJsonController[A] (
   }
 
   /**
-   * Sets a default successStatus.
+   * Sets Ok as the default successStatus.
+   *
+   * Note: The request will be authenticated using your custom [[AbstractAuthenticatorService]].
+   *
+   * Example:
+   * {{{
+   *   def whoAmI() = authenticatedNoInput { context: AuthenticatedRequestContext[UserId] =>
+   *     ...
+   *   }
+   * }}}
+   *
+   * Where UserId is what your custom [[AbstractAuthenticatorService]] returns on authenticated
+   * requests.
    */
   def authenticatedNoInput[M](
       block: AuthenticatedRequestContext[A] => FutureApplicationResult[M])(
