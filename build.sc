@@ -16,7 +16,7 @@ object playsonify extends PublishModule {
       ivy"org.scalatestplus.play::scalatestplus-play:3.1.0"
     )
 
-    def testFramework = "org.scalatest.tools.Framework"
+    def testFrameworks = Seq("org.scalatest.tools.Framework")
   }
 
   def pomSettings = PomSettings(
