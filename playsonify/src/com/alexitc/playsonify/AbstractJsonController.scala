@@ -68,7 +68,7 @@ abstract class AbstractJsonController[A] (
    *
    * Example:
    * {{{
-   *   def createUser = publicWithInput(Created) { context: PublicRequestContextWithModel[CreateUserModel] =>
+   *   def createUser = publicWithInput(Created) { context: PublicContextWithModel[CreateUserModel] =>
    *     ...
    *   }
    * }}}
@@ -84,12 +84,12 @@ abstract class AbstractJsonController[A] (
    */
   def publicWithInput[R: Reads, M](
       successStatus: Status)(
-      block: PublicRequestContextWithModel[R] => FutureApplicationResult[M])(
+      block: PublicContextWithModel[R] => FutureApplicationResult[M])(
       implicit tjs: Writes[M]): Action[JsValue] = Action.async(parse.json) { request =>
 
     val result = for {
       input <- validate[R](request.body).toFutureOr
-      context = PublicRequestContextWithModel(input, messagesApi.preferred(request).lang)
+      context = PublicContextWithModel(input, messagesApi.preferred(request).lang)
       output <- block(context).toFutureOr
     } yield output
 
@@ -102,7 +102,7 @@ abstract class AbstractJsonController[A] (
    *
    * Example:
    * {{{
-   *   def login = publicWithInput { context: PublicRequestContextWithModel[LoginModel] =>
+   *   def login = publicWithInput { context: PublicContextWithModel[LoginModel] =>
    *     ...
    *   }
    * }}}
@@ -111,7 +111,7 @@ abstract class AbstractJsonController[A] (
    * the HTTP status Ok (200) will be returned.
    */
   def publicWithInput[R: Reads, M](
-      block: PublicRequestContextWithModel[R] => FutureApplicationResult[M])(
+      block: PublicContextWithModel[R] => FutureApplicationResult[M])(
       implicit tjs: Writes[M]): Action[JsValue] = {
 
     publicWithInput[R, M](Ok)(block)
@@ -125,7 +125,7 @@ abstract class AbstractJsonController[A] (
    *
    * Example:
    * {{{
-   *   def verifyEmail(token: String) = publicNoInput { context: PublicRequestContext =>
+   *   def verifyEmail(token: String) = publicNoInput { context: PublicContext =>
    *     ...
    *   }
    * }}}
@@ -139,10 +139,10 @@ abstract class AbstractJsonController[A] (
    */
   def publicNoInput[M](
       successStatus: Status)(
-      block: PublicRequestContext => FutureApplicationResult[M])(
+      block: PublicContext => FutureApplicationResult[M])(
       implicit tjs: Writes[M]): Action[JsValue] = Action.async(EmptyJsonParser) { request =>
 
-    val context = PublicRequestContext(messagesApi.preferred(request).lang)
+    val context = PublicContext(messagesApi.preferred(request).lang)
     val result = block(context)
     val lang = messagesApi.preferred(request).lang
     toResult(successStatus, result)(lang, tjs)
@@ -153,7 +153,7 @@ abstract class AbstractJsonController[A] (
    *
    * Example:
    * {{{
-   *   def verifyEmail(token: String) = publicNoInput(Created) { context: PublicRequestContext =>
+   *   def verifyEmail(token: String) = publicNoInput(Created) { context: PublicContext =>
    *     ...
    *   }
    * }}}
@@ -161,7 +161,7 @@ abstract class AbstractJsonController[A] (
    * In case of a successful result, the HTTP status Created (201) will be returned.
    */
   def publicNoInput[M](
-      block: PublicRequestContext => FutureApplicationResult[M])(
+      block: PublicContext => FutureApplicationResult[M])(
       implicit tjs: Writes[M]): Action[JsValue] = {
 
     publicNoInput[M](Ok)(block)
@@ -176,7 +176,7 @@ abstract class AbstractJsonController[A] (
    *
    * Example:
    * {{{
-   *   def setPreferences = authenticatedWithInput(Ok) { context: AuthenticatedRequestContextWithModel[UserId, SetUserPreferencesModel] =>
+   *   def setPreferences = authenticatedWithInput(Ok) { context: AuthenticatedContextWithModel[UserId, SetUserPreferencesModel] =>
    *     ...
    *   }
    * }}}
@@ -192,14 +192,14 @@ abstract class AbstractJsonController[A] (
    */
   def authenticatedWithInput[R: Reads, M](
       successStatus: Status)(
-      block: AuthenticatedRequestContextWithModel[A, R] => FutureApplicationResult[M])(
+      block: AuthenticatedContextWithModel[A, R] => FutureApplicationResult[M])(
       implicit tjs: Writes[M]): Action[JsValue] = Action.async(parse.json) { request =>
 
     val lang = messagesApi.preferred(request).lang
     val result = for {
       input <- validate[R](request.body).toFutureOr
       authValue <- components.authenticatorService.authenticate(request).toFutureOr
-      context = AuthenticatedRequestContextWithModel(authValue, input, lang)
+      context = AuthenticatedContextWithModel(authValue, input, lang)
       output <- block(context).toFutureOr
     } yield output
 
@@ -213,7 +213,7 @@ abstract class AbstractJsonController[A] (
    *
    * Example:
    * {{{
-   *   def setPreferences = authenticatedWithInput { context: AuthenticatedRequestContextWithModel[UserId, SetUserPreferencesModel] =>
+   *   def setPreferences = authenticatedWithInput { context: AuthenticatedContextWithModel[UserId, SetUserPreferencesModel] =>
    *     ...
    *   }
    * }}}
@@ -222,7 +222,7 @@ abstract class AbstractJsonController[A] (
    * requests, also, there is an implicit deserializer for the SetUserPreferencesModel class.
    */
   def authenticatedWithInput[R: Reads, M](
-      block: AuthenticatedRequestContextWithModel[A, R] => FutureApplicationResult[M])(
+      block: AuthenticatedContextWithModel[A, R] => FutureApplicationResult[M])(
       implicit tjs: Writes[M]): Action[JsValue] = {
 
     authenticatedWithInput[R, M](Ok)(block)
@@ -236,7 +236,7 @@ abstract class AbstractJsonController[A] (
    *
    * Example:
    * {{{
-   *   def whoAmI() = authenticatedNoInput { context: AuthenticatedRequestContext[UserId] =>
+   *   def whoAmI() = authenticatedNoInput { context: AuthenticatedContext[UserId] =>
    *     ...
    *   }
    * }}}
@@ -251,13 +251,13 @@ abstract class AbstractJsonController[A] (
    */
   def authenticatedNoInput[M](
       successStatus: Status)(
-      block: AuthenticatedRequestContext[A] => FutureApplicationResult[M])(
+      block: AuthenticatedContext[A] => FutureApplicationResult[M])(
       implicit tjs: Writes[M]): Action[JsValue] = Action.async(EmptyJsonParser) { request =>
 
     val lang = messagesApi.preferred(request).lang
     val result = for {
       authValue <- components.authenticatorService.authenticate(request).toFutureOr
-      context = AuthenticatedRequestContext(authValue, lang)
+      context = AuthenticatedContext(authValue, lang)
       output <- block(context).toFutureOr
     } yield output
 
@@ -271,7 +271,7 @@ abstract class AbstractJsonController[A] (
    *
    * Example:
    * {{{
-   *   def whoAmI() = authenticatedNoInput { context: AuthenticatedRequestContext[UserId] =>
+   *   def whoAmI() = authenticatedNoInput { context: AuthenticatedContext[UserId] =>
    *     ...
    *   }
    * }}}
@@ -280,7 +280,7 @@ abstract class AbstractJsonController[A] (
    * requests.
    */
   def authenticatedNoInput[M](
-      block: AuthenticatedRequestContext[A] => FutureApplicationResult[M])(
+      block: AuthenticatedContext[A] => FutureApplicationResult[M])(
       implicit tjs: Writes[M]): Action[JsValue] = {
 
     authenticatedNoInput[M](Ok)(block)

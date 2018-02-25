@@ -3,7 +3,7 @@ package com.alexitc.playsonify.controllers
 import javax.inject.Inject
 
 import com.alexitc.playsonify.common._
-import com.alexitc.playsonify.models.PublicRequestContext
+import com.alexitc.playsonify.models.PublicContext
 import org.scalactic.{Bad, Good, Many}
 
 import scala.concurrent.Future
@@ -20,12 +20,12 @@ class PublicNoInputController @Inject() (cc: CustomControllerComponents) extends
     Future.successful(Good(result))
   }
 
-  def getErrors() = publicNoInput[CustomUser] { context: PublicRequestContext =>
+  def getErrors() = publicNoInput[CustomUser] { context: PublicContext =>
     val result = Bad(Many(CustomErrorMapper.InputError, CustomErrorMapper.DuplicateError))
     Future.successful(result)
   }
 
-  def getException(exception: Exception) = publicNoInput[CustomUser] { context: PublicRequestContext =>
+  def getException(exception: Exception) = publicNoInput[CustomUser] { context: PublicContext =>
     Future.failed(exception)
   }
 }
