@@ -1,0 +1,5 @@
+
+POST /hello         controllers.HelloWorldController.hello()
+GET  /auth          controllers.HelloWorldController.authenticatedHello()
+GET  /errors        controllers.HelloWorldController.failedHello()
+GET  /exception     controllers.HelloWorldController.exceptionHello()
