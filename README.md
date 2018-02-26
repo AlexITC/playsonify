@@ -24,8 +24,183 @@ The name `playsonify` was inspired by mixing the `JSON.stringify` function from 
 - HTTP Idiomatic controller tests.
 
 
+
+## What can playsonify do?
+
+Try it by yourself with this [simple-app](examples/simple-app).
+
+Let's define an input model:
+```scala
+case class Person(name: String, age: Int)
+
+object Person {
+  implicit val reads: Reads[Person] = Json.reads[Person]
+}
+```
+
+Define an output model:
+```scala
+case class HelloMessage(message: String)
+
+object HelloMessage {
+  implicit val writes: Writes[HelloMessage] = Json.writes[HelloMessage]
+}
+```
+
+Define a controller:
+```scala
+class HelloWorldController @Inject() (components: MyJsonControllerComponents)
+    extends MyJsonController(components) {
+
+  def hello = publicWithInput { context: PublicContextWithModel[Person] =>
+    val msg = s"Hello ${context.model.name}, you are ${context.model.age} years old"
+    val helloMessage = HelloMessage(msg)
+    val goodResult = Good(helloMessage)
+
+    Future.successful(goodResult)
+  }
+
+  def authenticatedHello = authenticatedNoInput { context: AuthenticatedContext[Int] =>
+    val msg = s"Hello user with id ${context.auth}"
+    val helloMessage = HelloMessage(msg)
+    val goodResult = Good(helloMessage)
+
+    Future.successful(goodResult)
+  }
+
+  def failedHello = publicNoInput[HelloMessage] { context: PublicContext =>
+    val errors = Every(UserEmailIncorrectError, UserAlreadyExistError, UserNotFoundError)
+    val badResult = Bad(errors)
+
+    Future.successful(badResult)
+  }
+
+  def exceptionHello = publicNoInput[HelloMessage] { context: PublicContext =>
+    Future.failed(new RuntimeException("database unavailable"))
+  }
+}
+```
+
+Last, define the routes file (conf/routes):
+```
+POST /hello         controllers.HelloWorldController.hello()
+GET  /auth          controllers.HelloWorldController.authenticatedHello()
+GET  /errors        controllers.HelloWorldController.failedHello()
+GET  /exception     controllers.HelloWorldController.exceptionHello()
+```
+
+These are some of the features that you get automatically:
+
+### Deserialization and serialization
+Request:
+```bash
+curl -H "Content-Type: application/json" \
+  -X POST -d \
+  '{"name":"Alex","age":18}' \
+   localhost:9000/hello
+```
+
+Response:
+```
+{"message":"Hello Alex, you are 18 years old"}
+```
+
+
+### Simple authentication
+Request:
+```bash
+curl -H "Authorization: 13" localhost:9000/auth
+```
+
+Response:
+```
+{"message":"Hello user with id 13"}
+```
+
+
+### Automatic exception handling
+Request:
+```bash
+curl -v localhost:9000/exception
+```
+
+Response:
+```
+< HTTP/1.1 500 Internal Server Error
+{
+   "errors":[
+      {
+         "type":"server-error",
+         "errorId":"bc49d715fb8d4255a62c30d13322205b"
+      }
+   ]
+}
+```
+
+### Simple error accumulation
+Request:
+```bash
+curl -v localhost:9000/errors
+```
+
+Response:
+```
+< HTTP/1.1 400 Bad Request
+{
+   "errors":[
+      {
+         "type":"field-validation-error",
+         "field":"email",
+         "message":"The email format is incorrect"
+      },
+      {
+         "type":"field-validation-error",
+         "field":"email",
+         "message":"The user already exist"
+      },
+      {
+         "type":"field-validation-error",
+         "field":"userId",
+         "message":"The user was not found"
+      }
+   ]
+}
+```
+
+
+### Controller testing is simple
+```scala
+class HelloWorldControllerSpec extends MyPlayAPISpec {
+
+  override val application = guiceApplicationBuilder.build()
+
+  "POST /hello" should {
+    "succeed" in {
+      val name = "Alex"
+      val age = 18
+      val body =
+        s"""
+           |{
+           |  "name": "$name",
+           |  "age": $age
+           |}
+         """.stripMargin
+
+      val response = POST("/hello", Some(body))
+      status(response) mustEqual OK
+
+      val json = contentAsJson(response)
+      (json \ "message").as[String] mustEqual "Hello Alex, you are 18 years old"
+    }
+  }
+}
+```
+
 ## Usage
-At the moment the documentation is incomplete, there are several examples in the [tests](playsonify/test/src/com/alexitc/playsonify/controllers) and in the controllers from the [Crypto Coin Alerts project](https://github.com/AlexITC/crypto-coin-alerts/tree/master/alerts-server/app/controllers).
+The documentation might be incomplete, you can take a look to these examples:
+- The [tests](playsonify/test/src/com/alexitc/playsonify/controllers).
+- The [example application](examples/simple-app).
+- The controllers from the [Crypto Coin Alerts project](https://github.com/AlexITC/crypto-coin-alerts/tree/master/alerts-server/app/controllers).
 
 
 ### Add dependencies
@@ -132,6 +307,7 @@ class MyApplicationErrorMapper @Inject() (messagesApi: MessagesApi) extends Appl
       FieldValidationError("email", message)
   }
 }
+
 ```
 
 Here you have a real example: [MyApplicationErrorMapper](https://github.com/AlexITC/crypto-coin-alerts/blob/master/alerts-server/app/com/alexitc/coinalerts/errors/MyApplicationErrorMapper.scala).
@@ -152,8 +328,9 @@ Note that while you could have defined the errors without the `SimpleAuthError`,
 Then, create your authenticator service, in this case, we'll a create a dummy authenticator which takes the value from the `Authorization` header and tries to convert it to an `Int` which we would be used as the user id (please, never use this unsecure approach):
 
 ```scala
-class DummyAuthenticatorService extends AbstractAuthenticatorService {
-  override def authenticate[A](request: Request[A]): FutureApplicationResult[Int] = {
+class DummyAuthenticatorService extends AbstractAuthenticatorService[Int] {
+
+  override def authenticate(request: Request[JsValue]): FutureApplicationResult[Int] = {
     val userIdMaybe = request
       .headers
       .get(HeaderNames.AUTHORIZATION)
@@ -191,7 +368,8 @@ Here you have a real example: [MyJsonControllerComponents](https://github.com/Al
 Last, we need to define your customized [AbstractJsonController](playsonify/src/com/alexitc/playsonify/AbstractJsonController.scala), using guice dependency injection could lead us to this example:
 
 ```scala
-class MyController @Inject() (components: MyJsonControllerComponents) extends MyJsonController(components) {
+abstract class MyJsonController(components: MyJsonControllerComponents) extends AbstractJsonController(components) {
+
   protected val logger = LoggerFactory.getLogger(this.getClass)
 
   override protected def onServerError(error: ServerError, errorId: ErrorId): Unit = {
@@ -228,8 +406,11 @@ class HelloWorldController @Inject() (components: MyJsonControllerComponents)
     extends MyJsonController(components) {
 
   def hello = publicWithInput { context: PublicContextWithModel[Person] =>
-    val msg = s"Hello ${context.model.name}, you are ${context.person.age} years old"
-    HelloMessage(msg)
+    val msg = s"Hello ${context.model.name}, you are ${context.model.age} years old"
+    val helloMessage = HelloMessage(msg)
+    val goodResult = Good(helloMessage)
+
+    Future.successful(goodResult)
   }
 }
 ```
@@ -237,10 +418,13 @@ class HelloWorldController @Inject() (components: MyJsonControllerComponents)
 What about authenticating the request?
 ```scala
 ...
-def helloAuth = authenticatedNoInput { context: AuthenticatedContext =>
-  val msg = s"Hello user with id ${context.auth}"
-  HelloMessage(msg)
-}
+  def authenticatedHello = authenticatedNoInput { context: AuthenticatedContext[Int] =>
+    val msg = s"Hello user with id ${context.auth}"
+    val helloMessage = HelloMessage(msg)
+    val goodResult = Good(helloMessage)
+
+    Future.successful(goodResult)
+  }
 ...
 ```
 
