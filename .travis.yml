@@ -1,0 +1,13 @@
+
+before_install:
+- sudo curl -L -o /usr/local/bin/mill https://github.com/lihaoyi/mill/releases/download/unstable/0.1.1-36-7b7044 && sudo chmod +x /usr/local/bin/mill
+
+language: scala
+
+scala:
+   - 2.12.2
+
+script:
+- mill playsonify.test
+
+
