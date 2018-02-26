@@ -1,5 +1,7 @@
 # playsonify
 
+[![Join the chat at https://gitter.im/playsonify/Lobby](https://badges.gitter.im/playsonify/Lobby.svg)](https://gitter.im/playsonify/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 [![Build Status](https://travis-ci.org/AlexITC/playsonify.svg?branch=master)](https://travis-ci.org/AlexITC/playsonify) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/e09923e277df4191ab2a1c3a4953ce41)](https://www.codacy.com/app/AlexITC/playsonify?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=AlexITC/playsonify&amp;utm_campaign=Badge_Grade)
 
 An opinionated library to help you build JSON APIs in a practical way using Play Framework
