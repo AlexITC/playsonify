@@ -11,6 +11,5 @@ class CustomControllerComponents @Inject()(
     override val messagesControllerComponents: MessagesControllerComponents,
     override val executionContext: ExecutionContext,
     override val publicErrorRenderer: PublicErrorRenderer,
-    override val applicationErrorMapper: CustomErrorMapper,
     override val authenticatorService: CustomAuthenticator)
     extends JsonControllerComponents[CustomUser]

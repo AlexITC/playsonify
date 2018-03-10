@@ -289,12 +289,13 @@ abstract class AbstractJsonController[A] (
   private def validate[R: Reads](json: JsValue): ApplicationResult[R] = {
     json.validate[R].fold(
       invalid => {
-        val errorList: Seq[JsonFieldValidationError] = invalid.map { case (path, errors) =>
+        val errorList = invalid.map { case (path, errors) =>
           JsonFieldValidationError(
             path,
             errors
                 .flatMap(_.messages)
-                .map(MessageKey.apply))
+                .map(MessageKey.apply)
+                .toList)
         }
 
         // assume that errorList is non empty
@@ -352,7 +353,7 @@ abstract class AbstractJsonController[A] (
   private def renderPublicErrors(errors: ApplicationErrors)(implicit lang: Lang) = {
     val jsonErrorList = errors
         .toList
-        .flatMap(components.applicationErrorMapper.toPublicErrorList)
+        .flatMap { error => error.toPublicErrorList(components.messagesControllerComponents.messagesApi) }
         .map(components.publicErrorRenderer.renderPublicError)
 
     Json.obj("errors" -> jsonErrorList)

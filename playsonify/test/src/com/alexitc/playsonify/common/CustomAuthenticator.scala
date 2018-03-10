@@ -17,7 +17,7 @@ class CustomAuthenticator extends AbstractAuthenticatorService[CustomUser] {
         .get(AUTHORIZATION)
         .map(CustomUser.apply)
 
-    val result = Or.from(header, One(CustomErrorMapper.FailedAuthError))
+    val result = Or.from(header, One(CustomError.FailedAuthError))
     Future.successful(result)
   }
 }

@@ -2,7 +2,7 @@ package com.alexitc.playsonify.controllers
 
 import javax.inject.Inject
 
-import com.alexitc.playsonify.common.{CustomControllerComponents, CustomErrorMapper, CustomJsonController, CustomModel}
+import com.alexitc.playsonify.common._
 import com.alexitc.playsonify.models.PublicContextWithModel
 import org.scalactic.{Bad, Good, Many}
 
@@ -18,7 +18,7 @@ class PublicWithInputController @Inject() (cc: CustomControllerComponents) exten
   }
 
   def getErrors() = publicWithInput[CustomModel, CustomModel] { context: PublicContextWithModel[CustomModel] =>
-    val result = Bad(Many(CustomErrorMapper.InputError, CustomErrorMapper.DuplicateError))
+    val result = Bad(Many(CustomError.InputError, CustomError.DuplicateError))
     Future.successful(result)
   }
 

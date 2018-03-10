@@ -21,7 +21,7 @@ class PublicNoInputController @Inject() (cc: CustomControllerComponents) extends
   }
 
   def getErrors() = publicNoInput[CustomUser] { context: PublicContext =>
-    val result = Bad(Many(CustomErrorMapper.InputError, CustomErrorMapper.DuplicateError))
+    val result = Bad(Many(CustomError.InputError, CustomError.DuplicateError))
     Future.successful(result)
   }
 

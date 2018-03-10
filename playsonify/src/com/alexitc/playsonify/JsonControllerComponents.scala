@@ -33,14 +33,6 @@ trait JsonControllerComponents[A] {
   /**
    * You are required to implement this component.
    *
-   * This is where you need to map your
-   * application specific errors to a general [[com.alexitc.playsonify.models.PublicError]].
-   */
-  def applicationErrorMapper: ApplicationErrorMapper
-
-  /**
-   * You are required to implement this component.
-   *
    * This is where you decide how to authenticate a request and what is the result of a
    * successful authentication, typically it would be something like a User or UserId.
    */
