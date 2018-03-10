@@ -343,7 +343,7 @@ abstract class AbstractJsonController[+A] (
       case error: ServerError =>
         val errorId = ErrorId.create
         onServerError(error, errorId)
-        renderPrivateError(errorId)
+        renderPrivateError(error, errorId)
 
       case _ => renderPublicErrors(errors)
     }
@@ -359,9 +359,11 @@ abstract class AbstractJsonController[+A] (
     Json.obj("errors" -> jsonErrorList)
   }
 
-  private def renderPrivateError(errorId: ErrorId) = {
-    val jsonError = components.publicErrorRenderer.renderPrivateError(errorId)
+  private def renderPrivateError(error: ServerError, errorId: ErrorId)(implicit lang: Lang) = {
+    val publicErrorList = error.toPublicErrorList(components.messagesControllerComponents.messagesApi)
+        .map { e => components.publicErrorRenderer.renderPublicError(e) }
 
-    Json.obj("errors" -> List(jsonError))
+    val errors = components.publicErrorRenderer.renderPrivateError(errorId) :: publicErrorList
+    Json.obj("errors" -> errors)
   }
 }
