@@ -27,7 +27,7 @@ object playsonifytest extends PlaysonifyModule {
 
 trait PlaysonifyModule extends PublishModule {
   def scalaVersion = "2.12.2"
-  def publishVersion = "1.0.0"
+  def publishVersion = "1.1.0-SNAPSHOT"
 
   def pomSettings = PomSettings(
     description = "An opinionated library to help you build JSON APIs in a practical way using Play Framework ",
