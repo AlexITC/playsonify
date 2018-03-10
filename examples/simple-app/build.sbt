@@ -7,7 +7,7 @@ lazy val root = (project in file("."))
 
 libraryDependencies ++= Seq(guice)
 
-libraryDependencies += "com.alexitc" %% "playsonify" % "1.0.0"
+libraryDependencies += "com.alexitc" %% "playsonify" % "1.1.0-SNAPSHOT"
 libraryDependencies += "org.scalactic" %% "scalactic" % "3.0.4"
 
 libraryDependencies += "org.slf4j" % "slf4j-api" % "1.7.25"
