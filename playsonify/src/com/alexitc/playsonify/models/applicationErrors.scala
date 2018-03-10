@@ -18,8 +18,10 @@ trait ApplicationError {
 }
 
 trait ServerError extends ApplicationError {
-  // contains data private to the server
-  def cause: Throwable
+  /**
+   * No all server errors could have a related exception.
+   */
+  def cause: Option[Throwable]
 
   /**
    * A server error is private, hence, an empty list is returned.
@@ -32,4 +34,6 @@ trait ConflictError extends ApplicationError
 trait NotFoundError extends ApplicationError
 trait AuthenticationError extends ApplicationError
 
-case class WrappedExceptionError(cause: Throwable) extends ServerError
+case class WrappedExceptionError(exception: Throwable) extends ServerError {
+  override def cause: Option[Throwable] = Option(exception)
+}
