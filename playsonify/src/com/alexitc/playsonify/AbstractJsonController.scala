@@ -33,7 +33,7 @@ import scala.util.control.NonFatal
  * @param components the components used by the logic of this JsonController.
  * @tparam A the value type for an authenticated request, like User or UserId.
  */
-abstract class AbstractJsonController[A] (
+abstract class AbstractJsonController[+A] (
     components: JsonControllerComponents[A])
     extends MessagesBaseController {
 

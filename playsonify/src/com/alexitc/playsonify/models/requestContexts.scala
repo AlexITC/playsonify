@@ -14,6 +14,6 @@ final case class PublicContext(lang: Lang) extends RequestContext
 final case class PublicContextWithModel[T](model: T, lang: Lang)
     extends RequestContext with HasModel[T]
 
-final case class AuthenticatedContext[A](auth: A, lang: Lang) extends RequestContext
-final case class AuthenticatedContextWithModel[A, T](auth: A, model: T, lang: Lang)
+final case class AuthenticatedContext[+A](auth: A, lang: Lang) extends RequestContext
+final case class AuthenticatedContextWithModel[+A, T](auth: A, model: T, lang: Lang)
     extends RequestContext with HasModel[T]

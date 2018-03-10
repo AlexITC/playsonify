@@ -9,7 +9,7 @@ import scala.concurrent.ExecutionContext
  *
  * @tparam A the type used on successful authenticated requests.
  */
-trait JsonControllerComponents[A] {
+trait JsonControllerComponents[+A] {
 
   /**
    * This is internally used by play, you probably want to inject it.

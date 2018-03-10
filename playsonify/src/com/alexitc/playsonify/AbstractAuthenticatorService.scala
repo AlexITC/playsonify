@@ -20,7 +20,7 @@ import play.api.mvc.Request
  *
  * @tparam A the type representing what is useful to use in your controllers as the user or credentials.
  */
-trait AbstractAuthenticatorService[A] {
+trait AbstractAuthenticatorService[+A] {
 
   def authenticate(request: Request[JsValue]): FutureApplicationResult[A]
 
