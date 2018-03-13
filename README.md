@@ -211,8 +211,8 @@ The documentation might be incomplete, you can take a look to these examples:
 
 ### Add dependencies
 Add these lines to your `build.sbt` file:
-- `libraryDependencies += "com.alexitc" %% "playsonify" % "1.0.0"`
-- `libraryDependencies += "com.alexitc" %% "playsonifytest" % "1.0.0" % Test` (optional, useful for testing).
+- `libraryDependencies += "com.alexitc" %% "playsonify" % "1.1.0"`
+- `libraryDependencies += "com.alexitc" %% "playsonifytest" % "1.1.0" % Test` (optional, useful for testing).
 
 
 #### Familiarize with scalactic Or and Every
@@ -250,9 +250,30 @@ trait ServerError extends ApplicationError {
 For example, let's say that we want to define the possible errors related to a user, we could define some errors:
 ```scala
 sealed trait UserError
-case object UserAlreadyExistError extends UserError with ConflictError
-case object UserNotFoundError extends UserError with NotFoundError
-case object UserEmailIncorrectError extends UserError with InputValidationError
+
+case object UserAlreadyExistError extends UserError with ConflictError {
+  override def toPublicErrorList(messagesApi: MessagesApi)(implicit lang: Lang): List[PublicError] = {
+    val message = messagesApi("user.error.alreadyExist")
+    val error = FieldValidationError("email", message)
+    List(error)
+  }
+}
+
+case object UserNotFoundError extends UserError with NotFoundError {
+  override def toPublicErrorList(messagesApi: MessagesApi)(implicit lang: Lang): List[PublicError] = {
+    val message = messagesApi("user.error.notFound")
+    val error = FieldValidationError("userId", message)
+    List(error)
+  }
+}
+
+case object UserEmailIncorrectError extends UserError with InputValidationError {
+  override def toPublicErrorList(messagesApi: MessagesApi)(implicit lang: Lang): List[PublicError] = {
+    val message = messagesApi("user.error.incorrectEmail")
+    val error = FieldValidationError("email", message)
+    List(error)
+  }
+}
 ```
 
 Then, when playsonify detect a `Bad` result, it will map the error to an HTTP status code in the following way:
@@ -262,61 +283,11 @@ Then, when playsonify detect a `Bad` result, it will map the error to an HTTP st
 - AuthenticationError -> 401 (UNAUTHORIZED).
 - ServerError -> 500 (INTERNAL_SERVER_ERROR).
 
-Hence, your task is to tag your error types with these top-level errors properly.
+Hence, your task is to tag your error types with these top-level errors properly and implement the `toPublicErrorList` to get an error that would be rendered to the user.
 
 Here you have a real example: [errors package](https://github.com/AlexITC/crypto-coin-alerts/tree/master/alerts-server/app/com/alexitc/coinalerts/errors).
 
-
-
-#### Create an error mapper
-You are required to create your own [ApplicationErrorMapper](playsonify/src/com/alexitc/playsonify/ApplicationErrorMapper.scala), the task here is to map your application specific errors to our [PublicError](playsonify/src/com/alexitc/playsonify/models/publicErrors.scala), these errors should be safe to be displayed to clients.
-
-When you implement this error mapper, you will notice that the `toPublicErrorList` method already receives a `Lang` which make it easy to support multiple languages.
-
-For example:
-```scala
-class MyApplicationErrorMapper @Inject() (messagesApi: MessagesApi) extends ApplicationErrorMapper {
-
-  override def toPublicErrorList(error: ApplicationError)(implicit lang: Lang): Seq[PublicError] = error match {
-    // server errors are not supposed to be mapped to PublicError
-    case _: ServerError => List.empty
-
-    // at the moment, you are required to catch this error,
-    // it happens when there are errors while mapping the request body to JSON.
-    case JsonFieldValidationError(path, errors) =>
-      val field = path.path.map(_.toJsonString.replace(".", "")).mkString(".")
-      errors.map { messageKey =>
-        val message = messagesApi(messageKey.string)
-        FieldValidationError(field, message)
-      }
-
-    // having a top-level error allow us to delegate the mapping task to specific functions
-    case e: UserError => List(renderUserError(e))
-
-    // it is better avoid a catch-all here in order to get a RuntimeException when an error is not mapped,
-    // I know, this is ugly, hopefully we will improve this in the future, so, please, ensure you have covered
-    // all possible errors in your tests.
-  }
-
-  // we use message keys to support multiple languages, store these keys in the messages file.
-  private def renderUserError(error: UserError)(implicit lang: Lang) = error match {
-    case UserAlreadyExistError =>
-      val message = messagesApi("user.error.alreadyExist")
-      FieldValidationError("email", message)
-      
-    case UserNotFoundError =>
-      val message = messagesApi("user.error.notFound")
-      FieldValidationError("userId", message)
-
-    case UserEmailIncorrectError =>
-      val message = messagesApi("user.error.incorrectEmail")
-      FieldValidationError("email", message)
-  }
-}
-
-```
-
-Here you have a real example: [MyApplicationErrorMapper](https://github.com/AlexITC/crypto-coin-alerts/blob/master/alerts-server/app/com/alexitc/coinalerts/errors/MyApplicationErrorMapper.scala).
+Notice that the you have the preferred user language to render errors in that language when possible.
 
 
 #### Define your authenticataion mechanism
@@ -326,10 +297,18 @@ For example, suppose that we'll use an `Int` to represent the id of the user per
 
 ```scala
 sealed trait SimpleAuthError
-case object InvalidAuthorizationHeaderError extends SimpleAuthError with AuthenticationError
+
+case object InvalidAuthorizationHeaderError extends SimpleAuthError with AuthenticationError {
+
+  override def toPublicErrorList(messagesApi: MessagesApi)(implicit lang: Lang): List[PublicError] = {
+    val message = messagesApi("auth.error.invalidToken")
+    val error = HeaderValidationError("Authorization", message)
+    List(error)
+  }
+}
 ```
 
-Note that while you could have defined the errors without the `SimpleAuthError`, it is recommended to do it in this way to simplify the code on your `ApplicationErrorMapper`.
+You could have defined the errors without the `SimpleAuthError` trait, I prefer to define a parent trait just in case that I need to use the errors in another part of the application.
 
 Then, create your authenticator service, in this case, we'll a create a dummy authenticator which takes the value from the `Authorization` header and tries to convert it to an `Int` which we would be used as the user id (please, never use this unsecure approach):
 
@@ -361,7 +340,6 @@ class MyJsonControllerComponents @Inject() (
     override val messagesControllerComponents: MessagesControllerComponents,
     override val executionContext: ExecutionContext,
     override val publicErrorRenderer: PublicErrorRenderer,
-    override val applicationErrorMapper: MyApplicationErrorMapper,
     override val authenticatorService: DummyAuthenticatorService)
     extends JsonControllerComponents[Int]
 ```
