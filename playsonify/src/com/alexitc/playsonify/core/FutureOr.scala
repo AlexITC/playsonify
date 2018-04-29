@@ -45,6 +45,28 @@ object FutureOr {
       }
     }
 
+    implicit class FutureListOps[+A](val inner: List[FutureApplicationResult[A]]) extends AnyVal {
+      def toFutureOr(implicit ec: ExecutionContext): FutureOr[List[A]] = {
+        val futureList = Future.sequence(inner)
+
+        val future = futureList.map { resultList =>
+          val errorsMaybe = resultList
+              .flatMap(_.swap.toOption)
+              .reduceLeftOption(_ ++ _)
+              .map(_.distinct)
+
+          errorsMaybe
+              .map(Bad(_))
+              .getOrElse {
+                val valueList = resultList.flatMap(_.toOption)
+                Good(valueList)
+              }
+        }
+
+        new FutureOr(future)
+      }
+    }
+
     implicit class OrOps[+A](val or: ApplicationResult[A]) extends AnyVal {
       def toFutureOr: FutureOr[A] = {
         val future = Future.successful(or)
