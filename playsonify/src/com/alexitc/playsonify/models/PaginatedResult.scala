@@ -2,7 +2,7 @@ package com.alexitc.playsonify.models
 
 import play.api.libs.json.{Json, OWrites, Writes}
 
-case class PaginatedResult[T](offset: Offset, limit: Limit, total: Count, data: List[T])
+case class PaginatedResult[+T](offset: Offset, limit: Limit, total: Count, data: List[T])
 
 object PaginatedResult {
 
