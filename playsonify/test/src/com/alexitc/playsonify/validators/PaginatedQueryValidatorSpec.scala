@@ -1,0 +1,57 @@
+package com.alexitc.playsonify.validators
+
+import com.alexitc.playsonify.models._
+import org.scalactic.{Bad, Every, Good}
+import org.scalatest.{MustMatchers, WordSpec}
+
+class PaginatedQueryValidatorSpec extends WordSpec with MustMatchers {
+
+  val validator = new PaginatedQueryValidator
+
+  "validate" should {
+    "succeed on valid query" in {
+      val query = PaginatedQuery(Offset(0), Limit(100))
+      val maxLimit = 100
+      val expected = Good(query)
+      val result = validator.validate(query, maxLimit)
+
+      result mustEqual expected
+    }
+
+    "fail on offset < 0" in {
+      val query = PaginatedQuery(Offset(-1), Limit(1))
+      val maxLimit = 100
+      val expected = Bad(PaginatedQueryOffsetError).accumulating
+      val result = validator.validate(query, maxLimit)
+
+      result mustEqual expected
+    }
+
+    "fail on limit = 0" in {
+      val query = PaginatedQuery(Offset(0), Limit(0))
+      val maxLimit = 100
+      val expected = Bad(PaginatedQueryLimitError(maxLimit)).accumulating
+      val result = validator.validate(query, maxLimit)
+
+      result mustEqual expected
+    }
+
+    "fail on limit > maxLimit" in {
+      val query = PaginatedQuery(Offset(0), Limit(101))
+      val maxLimit = 100
+      val expected = Bad(PaginatedQueryLimitError(maxLimit)).accumulating
+      val result = validator.validate(query, maxLimit)
+
+      result mustEqual expected
+    }
+
+    "accumulate errors when offset and limit are invalid" in {
+      val query = PaginatedQuery(Offset(-1), Limit(101))
+      val maxLimit = 100
+      val expected = Bad(Every(PaginatedQueryOffsetError, PaginatedQueryLimitError(maxLimit)))
+      val result = validator.validate(query, maxLimit)
+
+      result mustEqual expected
+    }
+  }
+}
