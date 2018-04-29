@@ -25,7 +25,7 @@ object playsonifytest extends PlaysonifyModule {
   )
 }
 
-trait PlaysonifyModule extends PublishModule {
+trait PlaysonifyModule extends ScalaModule with PublishModule {
   def scalaVersion = "2.12.2"
   def publishVersion = "1.2.0"
 
