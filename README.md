@@ -242,8 +242,8 @@ The documentation might be incomplete, you can take a look to these examples:
 
 ### Add dependencies
 Add these lines to your `build.sbt` file:
-- `libraryDependencies += "com.alexitc" %% "playsonify" % "1.1.0"`
-- `libraryDependencies += "com.alexitc" %% "playsonifytest" % "1.1.0" % Test` (optional, useful for testing).
+- `libraryDependencies += "com.alexitc" %% "playsonify" % "1.2.0"`
+- `libraryDependencies += "com.alexitc" %% "playsonifytest" % "1.2.0" % Test` (optional, useful for testing).
 
 
 ### Familiarize with scalactic Or and Every
