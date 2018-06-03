@@ -450,7 +450,7 @@ Here you have a real example: [controllers package](https://github.com/AlexITC/c
 ## Development
 The project is built using the [mill](https://github.com/lihaoyi/mill) build tool instead of `sbt`, hence, you need to install `mill` in order to build the project.
 
-The project has been built using `mill 0.1.4`.
+The project has been built using `mill 0.2.2`.
 
 ### Compile
 `mill playsonify.compile`
@@ -460,4 +460,4 @@ The project has been built using `mill 0.1.4`.
 
 ### Integrate with IntelliJ
 This step should be run everytime `build.sc` is modified:
-- `mill mill.scalalib.GenIdeaModule/idea`
+- `mill mill.scalalib.GenIdea/idea`
