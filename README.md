@@ -460,4 +460,4 @@ The project has been built using `mill 0.1.4`.
 
 ### Integrate with IntelliJ
 This step should be run everytime `build.sc` is modified:
-- `mill mill.scalalib.GenIdeaModule/idea`
+- `mill mill.scalalib.GenIdea/idea`
