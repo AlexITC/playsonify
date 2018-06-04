@@ -1,6 +1,6 @@
 
 before_install:
-- sudo curl -L -o /usr/local/bin/mill https://github.com/lihaoyi/mill/releases/download/0.2.0/0.2.0 && sudo chmod +x /usr/local/bin/mill
+- sudo curl -L -o /usr/local/bin/mill https://github.com/lihaoyi/mill/releases/download/0.2.3/0.2.3 && sudo chmod +x /usr/local/bin/mill
 
 language: scala
 
