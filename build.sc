@@ -38,7 +38,7 @@ trait PlaysonifyModule extends ScalaModule with PublishModule {
     organization = "com.alexitc",
     url = "https://github.com/AlexITC/playsonify",
     licenses = Seq(
-      License("MIT license", "https://github.com/AlexITC/playsonify/blob/master/LICENSE")
+      License.`MIT` // "https://github.com/AlexITC/playsonify/blob/master/LICENSE"
     ),
     scm = SCM(
       "git://github.com/AlexITC/playsonify.git",
