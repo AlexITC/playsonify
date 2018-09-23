@@ -1,6 +1,7 @@
-package com.alexitc.playsonify
+package com.alexitc.playsonify.play
 
-import play.api.mvc.MessagesControllerComponents
+import _root_.play.api.mvc.MessagesControllerComponents
+import com.alexitc.playsonify.core.I18nService
 
 import scala.concurrent.ExecutionContext
 
@@ -9,12 +10,14 @@ import scala.concurrent.ExecutionContext
  *
  * @tparam A the type used on successful authenticated requests.
  */
-trait JsonControllerComponents[+A] {
+trait JsonControllerComponents[+A, L] {
 
   /**
    * This is internally used by play, you probably want to inject it.
    */
   def messagesControllerComponents: MessagesControllerComponents
+
+  def i18nService: I18nService[L]
 
   /**
    * The execution context where all light-weight operations are going to run,
@@ -24,7 +27,7 @@ trait JsonControllerComponents[+A] {
 
   /**
    * This component maps a [[com.alexitc.playsonify.models.PublicError]] to a
-   * [[play.api.libs.json.JsValue]], this is where the errors are serialized to
+   * [[_root_.play.api.libs.json.JsValue]], this is where the errors are serialized to
    * JSON, you can implement a custom [[PublicErrorRenderer]] to override the default
    * behavior or to define a new error response format.
    */

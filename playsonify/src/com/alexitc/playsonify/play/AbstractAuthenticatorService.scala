@@ -1,4 +1,4 @@
-package com.alexitc.playsonify
+package com.alexitc.playsonify.play
 
 import com.alexitc.playsonify.core.FutureApplicationResult
 import play.api.libs.json.JsValue

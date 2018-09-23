@@ -1,7 +1,7 @@
 package com.alexitc.playsonify.common
 
-import com.alexitc.playsonify.AbstractJsonController
 import com.alexitc.playsonify.models.{ErrorId, ServerError}
+import com.alexitc.playsonify.play.AbstractJsonController
 import org.slf4j.LoggerFactory
 
 class CustomJsonController (components: CustomControllerComponents) extends AbstractJsonController(components) {

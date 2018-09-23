@@ -1,19 +1,17 @@
 package com.alexitc.playsonify.models
 
-import play.api.i18n.Lang
-
-sealed trait RequestContext {
-  def lang: Lang
+sealed trait RequestContext[L] {
+  def lang: L
 }
 
 sealed trait HasModel[T] {
   def model: T
 }
 
-final case class PublicContext(lang: Lang) extends RequestContext
-final case class PublicContextWithModel[T](model: T, lang: Lang)
-    extends RequestContext with HasModel[T]
+final case class PublicContext[L](lang: L) extends RequestContext[L]
+final case class PublicContextWithModel[T, L](model: T, lang: L)
+    extends RequestContext[L] with HasModel[T]
 
-final case class AuthenticatedContext[+A](auth: A, lang: Lang) extends RequestContext
-final case class AuthenticatedContextWithModel[+A, T](auth: A, model: T, lang: Lang)
-    extends RequestContext with HasModel[T]
+final case class AuthenticatedContext[+A, L](auth: A, lang: L) extends RequestContext[L]
+final case class AuthenticatedContextWithModel[+A, T, L](auth: A, model: T, lang: L)
+    extends RequestContext[L] with HasModel[T]

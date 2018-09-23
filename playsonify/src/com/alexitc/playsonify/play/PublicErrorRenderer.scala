@@ -1,7 +1,7 @@
-package com.alexitc.playsonify
+package com.alexitc.playsonify.play
 
+import _root_.play.api.libs.json.{JsValue, Json}
 import com.alexitc.playsonify.models._
-import play.api.libs.json.{JsValue, Json}
 
 class PublicErrorRenderer {
 

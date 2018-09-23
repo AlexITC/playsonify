@@ -1,7 +1,7 @@
 package com.alexitc.playsonify.common
 
-import com.alexitc.playsonify.AbstractAuthenticatorService
 import com.alexitc.playsonify.core.FutureApplicationResult
+import com.alexitc.playsonify.play.AbstractAuthenticatorService
 import org.scalactic.{One, Or}
 import play.api.libs.json.JsValue
 import play.api.mvc.Request

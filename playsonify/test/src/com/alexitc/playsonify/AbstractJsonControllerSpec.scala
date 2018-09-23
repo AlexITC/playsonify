@@ -1,13 +1,13 @@
 package com.alexitc.playsonify
 
+import _root_.play.api.Mode
+import _root_.play.api.inject.guice.GuiceApplicationBuilder
+import _root_.play.api.libs.json.{JsValue, Json}
+import _root_.play.api.test.Helpers._
+import _root_.play.api.test._
 import com.alexitc.playsonify.controllers.{AuthenticatedNoInputController, PublicNoInputController, PublicWithInputController}
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.play.PlaySpec
-import play.api.Mode
-import play.api.inject.guice.GuiceApplicationBuilder
-import play.api.libs.json.{JsValue, Json}
-import play.api.test.Helpers._
-import play.api.test._
 
 class AbstractJsonControllerSpec extends PlaySpec with ScalaFutures {
 

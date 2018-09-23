@@ -1,4 +1,4 @@
-package com.alexitc.playsonify
+package com.alexitc.playsonify.play
 
 import com.alexitc.playsonify.core.FutureOr.Implicits.{FutureOps, OrOps}
 import com.alexitc.playsonify.core.{ApplicationErrors, ApplicationResult, FutureApplicationResult}
@@ -34,7 +34,7 @@ import scala.util.control.NonFatal
  * @tparam A the value type for an authenticated request, like User or UserId.
  */
 abstract class AbstractJsonController[+A] (
-    components: JsonControllerComponents[A])
+    components: JsonControllerComponents[A, Lang])
     extends MessagesBaseController {
 
   override protected val controllerComponents: MessagesControllerComponents = components.messagesControllerComponents
@@ -84,7 +84,7 @@ abstract class AbstractJsonController[+A] (
    */
   def publicWithInput[R: Reads, M](
       successStatus: Status)(
-      block: PublicContextWithModel[R] => FutureApplicationResult[M])(
+      block: PublicContextWithModel[R, Lang] => FutureApplicationResult[M])(
       implicit tjs: Writes[M]): Action[JsValue] = Action.async(parse.json) { request =>
 
     val result = for {
@@ -111,7 +111,7 @@ abstract class AbstractJsonController[+A] (
    * the HTTP status Ok (200) will be returned.
    */
   def publicWithInput[R: Reads, M](
-      block: PublicContextWithModel[R] => FutureApplicationResult[M])(
+      block: PublicContextWithModel[R, Lang] => FutureApplicationResult[M])(
       implicit tjs: Writes[M]): Action[JsValue] = {
 
     publicWithInput[R, M](Ok)(block)
@@ -139,7 +139,7 @@ abstract class AbstractJsonController[+A] (
    */
   def publicNoInput[M](
       successStatus: Status)(
-      block: PublicContext => FutureApplicationResult[M])(
+      block: PublicContext[Lang] => FutureApplicationResult[M])(
       implicit tjs: Writes[M]): Action[JsValue] = Action.async(EmptyJsonParser) { request =>
 
     val context = PublicContext(messagesApi.preferred(request).lang)
@@ -161,7 +161,7 @@ abstract class AbstractJsonController[+A] (
    * In case of a successful result, the HTTP status Created (201) will be returned.
    */
   def publicNoInput[M](
-      block: PublicContext => FutureApplicationResult[M])(
+      block: PublicContext[Lang] => FutureApplicationResult[M])(
       implicit tjs: Writes[M]): Action[JsValue] = {
 
     publicNoInput[M](Ok)(block)
@@ -192,7 +192,7 @@ abstract class AbstractJsonController[+A] (
    */
   def authenticatedWithInput[R: Reads, M](
       successStatus: Status)(
-      block: AuthenticatedContextWithModel[A, R] => FutureApplicationResult[M])(
+      block: AuthenticatedContextWithModel[A, R, Lang] => FutureApplicationResult[M])(
       implicit tjs: Writes[M]): Action[JsValue] = Action.async(parse.json) { request =>
 
     val lang = messagesApi.preferred(request).lang
@@ -222,7 +222,7 @@ abstract class AbstractJsonController[+A] (
    * requests, also, there is an implicit deserializer for the SetUserPreferencesModel class.
    */
   def authenticatedWithInput[R: Reads, M](
-      block: AuthenticatedContextWithModel[A, R] => FutureApplicationResult[M])(
+      block: AuthenticatedContextWithModel[A, R, Lang] => FutureApplicationResult[M])(
       implicit tjs: Writes[M]): Action[JsValue] = {
 
     authenticatedWithInput[R, M](Ok)(block)
@@ -251,7 +251,7 @@ abstract class AbstractJsonController[+A] (
    */
   def authenticatedNoInput[M](
       successStatus: Status)(
-      block: AuthenticatedContext[A] => FutureApplicationResult[M])(
+      block: AuthenticatedContext[A, Lang] => FutureApplicationResult[M])(
       implicit tjs: Writes[M]): Action[JsValue] = Action.async(EmptyJsonParser) { request =>
 
     val lang = messagesApi.preferred(request).lang
@@ -280,7 +280,7 @@ abstract class AbstractJsonController[+A] (
    * requests.
    */
   def authenticatedNoInput[M](
-      block: AuthenticatedContext[A] => FutureApplicationResult[M])(
+      block: AuthenticatedContext[A, Lang] => FutureApplicationResult[M])(
       implicit tjs: Writes[M]): Action[JsValue] = {
 
     authenticatedNoInput[M](Ok)(block)
@@ -353,14 +353,14 @@ abstract class AbstractJsonController[+A] (
   private def renderPublicErrors(errors: ApplicationErrors)(implicit lang: Lang) = {
     val jsonErrorList = errors
         .toList
-        .flatMap { error => error.toPublicErrorList(components.messagesControllerComponents.messagesApi) }
+        .flatMap { error => error.toPublicErrorList(components.i18nService) }
         .map(components.publicErrorRenderer.renderPublicError)
 
     Json.obj("errors" -> jsonErrorList)
   }
 
   private def renderPrivateError(error: ServerError, errorId: ErrorId)(implicit lang: Lang) = {
-    val publicErrorList = error.toPublicErrorList(components.messagesControllerComponents.messagesApi)
+    val publicErrorList = error.toPublicErrorList(components.i18nService)
         .map { e => components.publicErrorRenderer.renderPublicError(e) }
 
     val errors = components.publicErrorRenderer.renderPrivateError(errorId) :: publicErrorList
