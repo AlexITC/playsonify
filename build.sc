@@ -18,6 +18,17 @@ object playsonify extends PlaysonifyModule {
   }
 }
 
+object `playsonify-core` extends PlaysonifyModule {
+  def ivyDeps = Agg(
+    scalactic
+  )
+
+  object test extends Tests{
+
+    def testFrameworks = Seq("org.scalatest.tools.Framework")
+  }
+}
+
 object playsonifytest extends PlaysonifyModule {
 
   def ivyDeps = Agg(
