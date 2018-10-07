@@ -33,7 +33,7 @@ object `playsonify-play` extends PlaysonifyModule {
   }
 }
 
-object playsonifytest extends PlaysonifyModule {
+object `playsonify-play-test` extends PlaysonifyModule {
 
   def ivyDeps = Agg(
     scalatestPlusPlay
