@@ -8,6 +8,6 @@ scala:
    - 2.12.2
 
 script:
-- mill playsonify.test
+- mill __.test
 
 
