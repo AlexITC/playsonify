@@ -42,7 +42,7 @@ object `playsonify-play-test` extends PlaysonifyModule {
 
 trait PlaysonifyModule extends ScalaModule with PublishModule {
   def scalaVersion = "2.12.2"
-  def publishVersion = "1.3.0-SNAPSHOT"
+  def publishVersion = "2.0.0-SNAPSHOT"
 
   val playframework = ivy"com.typesafe.play::play:2.6.15"
   val scalactic = ivy"org.scalactic::scalactic:3.0.5"
