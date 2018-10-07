@@ -2,22 +2,6 @@ import mill._
 import mill.scalalib._
 import mill.scalalib.publish._
 
-object playsonify extends PlaysonifyModule {
-
-  def ivyDeps = Agg(
-    playframework,
-    scalactic
-  )
-
-  object test extends Tests{
-    def ivyDeps = Agg(
-      scalatestPlusPlay
-    )
-
-    def testFrameworks = Seq("org.scalatest.tools.Framework")
-  }
-}
-
 object `playsonify-core` extends PlaysonifyModule {
   def ivyDeps = Agg(
     scalactic
