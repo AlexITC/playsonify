@@ -34,7 +34,7 @@ import scala.util.control.NonFatal
  * @tparam A the value type for an authenticated request, like User or UserId.
  */
 abstract class AbstractJsonController[+A] (
-    components: JsonControllerComponents[A, Lang])
+    components: JsonControllerComponents[A])
     extends MessagesBaseController {
 
   override protected val controllerComponents: MessagesControllerComponents = components.messagesControllerComponents
