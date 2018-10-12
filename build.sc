@@ -44,7 +44,7 @@ trait PlaysonifyModule extends ScalaModule with PublishModule {
   def scalaVersion = "2.12.2"
   def publishVersion = "2.0.0-SNAPSHOT"
 
-  val playframework = ivy"com.typesafe.play::play:2.6.15"
+  val playframework = ivy"com.typesafe.play::play:2.6.20"
   val scalactic = ivy"org.scalactic::scalactic:3.0.5"
   val scalatestPlusPlay = ivy"org.scalatestplus.play::scalatestplus-play:3.1.2"
 
