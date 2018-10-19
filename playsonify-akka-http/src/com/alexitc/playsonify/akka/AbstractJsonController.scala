@@ -22,16 +22,16 @@ abstract class AbstractJsonController[+A](
     extends Directives
     with PlayJsonSupport {
 
-  class RequestContext(val request: HttpRequest)
+  class Context(val request: HttpRequest)
 
-  object RequestContext {
+  object Context {
 
     trait HasModel[+T] { def model: T }
 
     trait Authenticated { def auth: A }
   }
 
-  import RequestContext._
+  import Context._
 
   // Required to complete the calls to render messages
   private implicit val dummyLang: String = ""
@@ -77,7 +77,7 @@ abstract class AbstractJsonController[+A](
   }
 
   def publicInput[I, O](successCode: StatusCode)(
-      f: RequestContext with HasModel[I] => FutureApplicationResult[O])(
+      f: Context with HasModel[I] => FutureApplicationResult[O])(
       implicit um: FromRequestUnmarshaller[I],
       rm: ToResponseMarshaller[O],
       mat: Materializer): Route = {
@@ -90,7 +90,7 @@ abstract class AbstractJsonController[+A](
   }
 
   def publicInput[I, O](
-      f: RequestContext with HasModel[I] => FutureApplicationResult[O])(
+      f: Context with HasModel[I] => FutureApplicationResult[O])(
       implicit um: FromRequestUnmarshaller[I],
       rm: ToResponseMarshaller[O],
       mat: Materializer): Route = {
@@ -100,7 +100,7 @@ abstract class AbstractJsonController[+A](
 
   def public[O](
       successCode: StatusCode)(
-      f: RequestContext => FutureApplicationResult[O])(
+      f: Context => FutureApplicationResult[O])(
       implicit rm: ToResponseMarshaller[O],
       mat: Materializer): Route = {
 
@@ -112,7 +112,7 @@ abstract class AbstractJsonController[+A](
   }
 
   def public[O](
-      f: RequestContext => FutureApplicationResult[O])(
+      f: Context => FutureApplicationResult[O])(
       implicit rm: ToResponseMarshaller[O],
       mat: Materializer): Route = {
 
@@ -121,7 +121,7 @@ abstract class AbstractJsonController[+A](
 
   def authenticated[O](
       successCode: StatusCode)(
-      f: RequestContext with Authenticated => FutureApplicationResult[O])(
+      f: Context with Authenticated => FutureApplicationResult[O])(
       implicit rm: ToResponseMarshaller[O],
       mat: Materializer): Route = {
 
@@ -132,7 +132,7 @@ abstract class AbstractJsonController[+A](
         extractExecutionContext { implicit ec =>
           val result = for {
             authObj <- components.authenticatorService.authenticate(ctx.request).toFutureOr
-            authCtx = new RequestContext(ctx.request) with Authenticated {
+            authCtx = new Context(ctx.request) with Authenticated {
 
               override val auth: A = authObj
             }
@@ -146,7 +146,7 @@ abstract class AbstractJsonController[+A](
   }
 
   def authenticated[O](
-      f: RequestContext with Authenticated => FutureApplicationResult[O])(
+      f: Context with Authenticated => FutureApplicationResult[O])(
       implicit rm: ToResponseMarshaller[O],
       mat: Materializer): Route = {
 
@@ -154,7 +154,7 @@ abstract class AbstractJsonController[+A](
   }
 
   def authenticatedInput[I, O](successCode: StatusCode)(
-      f: RequestContext with Authenticated with HasModel[I] => FutureApplicationResult[O])(
+      f: Context with Authenticated with HasModel[I] => FutureApplicationResult[O])(
       implicit um: FromRequestUnmarshaller[I],
       rm: ToResponseMarshaller[O],
       mat: Materializer): Route = {
@@ -166,7 +166,7 @@ abstract class AbstractJsonController[+A](
         extractExecutionContext { implicit ec =>
           val result = for {
             authObj <- components.authenticatorService.authenticate(ctx.request).toFutureOr
-            authCtx = new RequestContext(ctx.request) with Authenticated with HasModel[I] {
+            authCtx = new Context(ctx.request) with Authenticated with HasModel[I] {
 
               override def auth: A = authObj
 
@@ -182,7 +182,7 @@ abstract class AbstractJsonController[+A](
   }
 
   def authenticatedInput[I, O](
-      f: RequestContext with Authenticated with HasModel[I] => FutureApplicationResult[O])(
+      f: Context with Authenticated with HasModel[I] => FutureApplicationResult[O])(
       implicit um: FromRequestUnmarshaller[I],
       rm: ToResponseMarshaller[O],
       mat: Materializer): Route = {
@@ -245,21 +245,21 @@ abstract class AbstractJsonController[+A](
 
   private def requestContextWithModelUnmarshaller[T](
       implicit um: FromRequestUnmarshaller[T],
-      mat: Materializer): FromRequestUnmarshaller[RequestContext with HasModel[T]] = {
+      mat: Materializer): FromRequestUnmarshaller[Context with HasModel[T]] = {
 
-    Unmarshaller.apply[HttpRequest, RequestContext with HasModel[T]] { implicit ec => request =>
+    Unmarshaller.apply[HttpRequest, Context with HasModel[T]] { implicit ec => request =>
       um.apply(request)(ec, mat)
           .map { x =>
-            new RequestContext(request) with HasModel[T] {
+            new Context(request) with HasModel[T] {
               override def model: T = x
             }
           }
     }
   }
 
-  private def requestContextUnmarshaller(implicit mat: Materializer): FromRequestUnmarshaller[RequestContext] = {
-    Unmarshaller.strict[HttpRequest, RequestContext] { request =>
-      new RequestContext(request)
+  private def requestContextUnmarshaller(implicit mat: Materializer): FromRequestUnmarshaller[Context] = {
+    Unmarshaller.strict[HttpRequest, Context] { request =>
+      new Context(request)
     }
   }
 }

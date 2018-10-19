@@ -11,7 +11,7 @@ import scala.concurrent.Future
 
 class TestController(implicit mat: Materializer) extends CustomJsonController {
 
-  import RequestContext._
+  import Context._
 
   def routes: Route = {
     publicWithInputRoutes ~ publicNoInputRoutes ~ authenticatedNoInputRoutes ~ authenticatedWithInputRoutes
