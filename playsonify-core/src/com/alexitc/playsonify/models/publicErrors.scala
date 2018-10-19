@@ -7,6 +7,7 @@ sealed trait PublicError
 case class GenericPublicError(message: String) extends PublicError
 case class FieldValidationError(field: String, message: String) extends PublicError
 case class HeaderValidationError(header: String, message: String) extends PublicError
+case class InternalError(id: ErrorId, message: String) extends PublicError
 
 object PublicError {
 

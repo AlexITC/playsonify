@@ -47,9 +47,8 @@ abstract class AbstractJsonController[+A] (
    * For example, log the error with the id, handle metrics, etc.
    *
    * @param error the error that occurred.
-   * @param errorId the unique identifier for the error.
    */
-  protected def onServerError(error: ServerError, errorId: ErrorId): Unit
+  protected def onServerError(error: ServerError): Unit
 
   /**
    * Ignores the body returning an empty json.
@@ -316,11 +315,22 @@ abstract class AbstractJsonController[+A] (
         renderSuccessfulResult(successStatus, value)(tjs)
 
       case Bad(errors) =>
-        renderErrors(errors)
+        val errorId = ErrorId.create
+        val status = getResultStatus(errors)
+        val json = renderErrors(errors)
+
+        logServerErrors(errorId, errors)
+        status(json)
     }.recover {
       case NonFatal(ex) =>
-        val error = WrappedExceptionError(ex)
-        renderErrors(Every(error))
+        val errorId = ErrorId.create
+        val error = WrappedExceptionError(errorId, ex)
+        val errors = Every(error)
+        val json = renderErrors(errors)
+        val status = getResultStatus(errors)
+
+        logServerErrors(errorId, errors)
+        status(json)
     }
   }
 
@@ -329,41 +339,28 @@ abstract class AbstractJsonController[+A] (
     successStatus.apply(json)
   }
 
-  private def renderErrors(errors: ApplicationErrors)(implicit lang: Lang): Result = {
-    // detect response status based on the first error
-    val status = errors.head match {
-      case _: InputValidationError => Results.BadRequest
-      case _: ConflictError => Results.Conflict
-      case _: NotFoundError => Results.NotFound
-      case _: AuthenticationError => Results.Unauthorized
-      case _: ServerError => Results.InternalServerError
-    }
-
-    val json = errors.head match {
-      case error: ServerError =>
-        val errorId = ErrorId.create
-        onServerError(error, errorId)
-        renderPrivateError(error, errorId)
-
-      case _ => renderPublicErrors(errors)
-    }
-    status(Json.toJson(json))
+  // detect response status based on the first error
+  private def getResultStatus(errors: ApplicationErrors): Results.Status = errors.head match {
+    case _: InputValidationError => Results.BadRequest
+    case _: ConflictError => Results.Conflict
+    case _: NotFoundError => Results.NotFound
+    case _: AuthenticationError => Results.Unauthorized
+    case _: ServerError => Results.InternalServerError
   }
 
-  private def renderPublicErrors(errors: ApplicationErrors)(implicit lang: Lang) = {
-    val jsonErrorList = errors
-        .toList
-        .flatMap { error => error.toPublicErrorList(components.i18nService) }
+  private def renderErrors(errors: ApplicationErrors)(implicit lang: Lang): JsValue = {
+    val jsonErrorList = errors.toList
+        .flatMap { error =>
+          error.toPublicErrorList(components.i18nService)
+        }
         .map(components.publicErrorRenderer.renderPublicError)
 
     Json.obj("errors" -> jsonErrorList)
   }
 
-  private def renderPrivateError(error: ServerError, errorId: ErrorId)(implicit lang: Lang) = {
-    val publicErrorList = error.toPublicErrorList(components.i18nService)
-        .map { e => components.publicErrorRenderer.renderPublicError(e) }
-
-    val errors = components.publicErrorRenderer.renderPrivateError(errorId) :: publicErrorList
-    Json.obj("errors" -> errors)
+  private def logServerErrors(errorId: ErrorId, errors: ApplicationErrors): Unit = {
+    errors
+        .collect { case e: ServerError => e }
+        .foreach(onServerError)
   }
 }

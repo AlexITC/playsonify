@@ -19,6 +19,11 @@ trait ApplicationError {
 }
 
 trait ServerError extends ApplicationError {
+
+  import ServerError._
+
+  def id: ErrorId
+
   /**
    * No all server errors could have a related exception.
    */
@@ -27,7 +32,15 @@ trait ServerError extends ApplicationError {
   /**
    * A server error is private, hence, an empty list is returned.
    */
-  override def toPublicErrorList[L](i18nService: I18nService[L])(implicit lang: L): List[PublicError] = List.empty
+  override def toPublicErrorList[L](i18nService: I18nService[L])(implicit lang: L): List[PublicError] = {
+    val message = i18nService.render(messageKey.string)
+    val error = InternalError(id, message)
+    List(error)
+  }
+}
+
+object ServerError {
+  val messageKey: MessageKey = MessageKey("error.internal")
 }
 
 trait InputValidationError extends ApplicationError
@@ -35,6 +48,6 @@ trait ConflictError extends ApplicationError
 trait NotFoundError extends ApplicationError
 trait AuthenticationError extends ApplicationError
 
-case class WrappedExceptionError(exception: Throwable) extends ServerError {
+case class WrappedExceptionError(id: ErrorId, exception: Throwable) extends ServerError {
   override def cause: Option[Throwable] = Option(exception)
 }

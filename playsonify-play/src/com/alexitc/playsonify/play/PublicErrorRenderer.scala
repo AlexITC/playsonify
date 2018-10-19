@@ -33,13 +33,14 @@ class PublicErrorRenderer {
         "message" -> e.message
       )
       Json.toJson(obj)
-  }
 
-  def renderPrivateError(errorId: ErrorId) = {
-    Json.obj(
-      "type" -> ServerErrorType,
-      "errorId" -> errorId.string
-    )
+    case e: InternalError =>
+      val obj = Json.obj(
+        "type" -> ServerErrorType,
+        "errorId" -> e.id.string,
+        "message" -> e.message
+      )
+      Json.toJson(obj)
   }
 }
 
