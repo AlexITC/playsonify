@@ -21,7 +21,7 @@ class TestController(implicit mat: Materializer) extends CustomJsonController {
     pathPrefix("authenticated") {
       path("model") {
         get {
-          authenticatedNoInput { ctx: Authenticated =>
+          authenticated[CustomModel] { ctx: Authenticated =>
             val result = CustomModel(0, ctx.auth.id)
             Future.successful(Good(result))
           }
@@ -29,7 +29,7 @@ class TestController(implicit mat: Materializer) extends CustomJsonController {
       } ~
       path("model-custom-status") {
         get {
-          authenticatedNoInput(StatusCodes.Created) { ctx: Authenticated =>
+          authenticated[CustomModel](StatusCodes.Created) { ctx: Authenticated =>
             val result = CustomModel(0, ctx.auth.id)
             Future.successful(Good(result))
           }
@@ -42,14 +42,14 @@ class TestController(implicit mat: Materializer) extends CustomJsonController {
     pathPrefix("authenticated-input") {
       path("model") {
         post {
-          authenticatedWithInput { ctx: HasModel[CustomModel] with Authenticated =>
+          authenticatedInput { ctx: HasModel[CustomModel] with Authenticated =>
             Future.successful(Good(ctx.model))
           }
         }
       } ~
       path("model-custom-status") {
         post {
-          authenticatedWithInput(StatusCodes.Created) { ctx: HasModel[CustomModel] with Authenticated =>
+          authenticatedInput(StatusCodes.Created) { ctx: HasModel[CustomModel] with Authenticated =>
             Future.successful(Good(ctx.model))
           }
         }
@@ -61,7 +61,7 @@ class TestController(implicit mat: Materializer) extends CustomJsonController {
     pathPrefix("no-input") {
       path("model") {
         get {
-          publicNoInput { ctx =>
+          public { ctx =>
             val result = CustomModel(0, "none")
             Future.successful(Good(result))
           }
@@ -69,7 +69,7 @@ class TestController(implicit mat: Materializer) extends CustomJsonController {
       } ~
       path("model-custom-status") {
         get {
-          publicNoInput(StatusCodes.Created) { ctx =>
+          public(StatusCodes.Created) { ctx =>
             val result = CustomModel(0, "none")
             Future.successful(Good(result))
           }
@@ -77,14 +77,14 @@ class TestController(implicit mat: Materializer) extends CustomJsonController {
       } ~
       path("errors") {
         get {
-          publicNoInput { ctx =>
+          public { ctx =>
             errorsResponse
           }
         }
       } ~
       path("exception") {
         get {
-          publicNoInput { ctx =>
+          public { ctx =>
             exceptionResponse
           }
         }
@@ -96,28 +96,28 @@ class TestController(implicit mat: Materializer) extends CustomJsonController {
     pathPrefix("input") {
       path("model") {
         post {
-          publicWithInput { ctx: HasModel[CustomModel] =>
+          publicInput { ctx: HasModel[CustomModel] =>
             Future.successful(Good(ctx.model))
           }
         }
       } ~
       path("model-custom-status") {
         post {
-          publicWithInput(StatusCodes.Created) { ctx: HasModel[CustomModel] =>
+          publicInput(StatusCodes.Created) { ctx: HasModel[CustomModel] =>
             Future.successful(Good(ctx.model))
           }
         }
       } ~
       path("errors") {
         post {
-          publicWithInput { ctx: HasModel[CustomModel] =>
+          publicInput { ctx: HasModel[CustomModel] =>
             errorsResponse
           }
         }
       } ~
       path("exception") {
         post {
-          publicWithInput { ctx: HasModel[CustomModel] =>
+          publicInput { ctx: HasModel[CustomModel] =>
             exceptionResponse
           }
         }

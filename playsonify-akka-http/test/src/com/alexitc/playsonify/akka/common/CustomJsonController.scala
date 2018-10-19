@@ -39,9 +39,9 @@ object CustomJsonController {
   class CustomAuthenticator extends AbstractAuthenticatorService[CustomUser] {
 
     override def authenticate(request: HttpRequest): FutureApplicationResult[CustomUser] = {
+
       val header = request
-          .headers
-          .find(_ is Authorization.name.toLowerCase())
+          .header[Authorization]
           .map(_.value())
           .map(CustomUser.apply)
 

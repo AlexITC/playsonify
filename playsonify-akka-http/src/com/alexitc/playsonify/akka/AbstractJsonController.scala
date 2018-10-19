@@ -76,7 +76,7 @@ abstract class AbstractJsonController[+A](
         .result()
   }
 
-  def publicWithInput[I, O](successCode: StatusCode)(
+  def publicInput[I, O](successCode: StatusCode)(
       f: RequestContext with HasModel[I] => FutureApplicationResult[O])(
       implicit um: FromRequestUnmarshaller[I],
       rm: ToResponseMarshaller[O],
@@ -89,16 +89,16 @@ abstract class AbstractJsonController[+A](
     }
   }
 
-  def publicWithInput[I, O](
+  def publicInput[I, O](
       f: RequestContext with HasModel[I] => FutureApplicationResult[O])(
       implicit um: FromRequestUnmarshaller[I],
       rm: ToResponseMarshaller[O],
       mat: Materializer): Route = {
 
-    publicWithInput[I, O](StatusCodes.OK)(f)
+    publicInput[I, O](StatusCodes.OK)(f)
   }
 
-  def publicNoInput[O](
+  def public[O](
       successCode: StatusCode)(
       f: RequestContext => FutureApplicationResult[O])(
       implicit rm: ToResponseMarshaller[O],
@@ -111,15 +111,15 @@ abstract class AbstractJsonController[+A](
     }
   }
 
-  def publicNoInput[O](
+  def public[O](
       f: RequestContext => FutureApplicationResult[O])(
       implicit rm: ToResponseMarshaller[O],
       mat: Materializer): Route = {
 
-    publicNoInput(StatusCodes.OK)(f)
+    public[O](StatusCodes.OK)(f)
   }
 
-  def authenticatedNoInput[O](
+  def authenticated[O](
       successCode: StatusCode)(
       f: RequestContext with Authenticated => FutureApplicationResult[O])(
       implicit rm: ToResponseMarshaller[O],
@@ -145,15 +145,15 @@ abstract class AbstractJsonController[+A](
     }
   }
 
-  def authenticatedNoInput[O](
+  def authenticated[O](
       f: RequestContext with Authenticated => FutureApplicationResult[O])(
       implicit rm: ToResponseMarshaller[O],
       mat: Materializer): Route = {
 
-    authenticatedNoInput(StatusCodes.OK)(f)
+    authenticated[O](StatusCodes.OK)(f)
   }
 
-  def authenticatedWithInput[I, O](successCode: StatusCode)(
+  def authenticatedInput[I, O](successCode: StatusCode)(
       f: RequestContext with Authenticated with HasModel[I] => FutureApplicationResult[O])(
       implicit um: FromRequestUnmarshaller[I],
       rm: ToResponseMarshaller[O],
@@ -181,13 +181,13 @@ abstract class AbstractJsonController[+A](
     }
   }
 
-  def authenticatedWithInput[I, O](
+  def authenticatedInput[I, O](
       f: RequestContext with Authenticated with HasModel[I] => FutureApplicationResult[O])(
       implicit um: FromRequestUnmarshaller[I],
       rm: ToResponseMarshaller[O],
       mat: Materializer): Route = {
 
-    authenticatedWithInput[I, O](StatusCodes.OK)(f)
+    authenticatedInput[I, O](StatusCodes.OK)(f)
   }
 
   private def logServerErrors(errorId: ErrorId, errors: ApplicationErrors): Unit = {
