@@ -3,8 +3,7 @@ package com.alexitc.playsonify.akka.controllers
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.Route
 import akka.stream.Materializer
-import com.alexitc.playsonify.akka.RequestContext
-import com.alexitc.playsonify.akka.common.{CustomError, CustomJsonController, CustomModel, CustomUser}
+import com.alexitc.playsonify.akka.common.{CustomError, CustomJsonController, CustomModel}
 import com.alexitc.playsonify.core.FutureApplicationResult
 import org.scalactic.{Bad, Good, Many}
 
@@ -22,7 +21,7 @@ class TestController(implicit mat: Materializer) extends CustomJsonController {
     pathPrefix("authenticated") {
       path("model") {
         get {
-          authenticatedNoInput { ctx =>
+          authenticatedNoInput { ctx: Authenticated =>
             val result = CustomModel(0, ctx.auth.id)
             Future.successful(Good(result))
           }
@@ -30,7 +29,7 @@ class TestController(implicit mat: Materializer) extends CustomJsonController {
       } ~
       path("model-custom-status") {
         get {
-          authenticatedNoInput(StatusCodes.Created) { ctx =>
+          authenticatedNoInput(StatusCodes.Created) { ctx: Authenticated =>
             val result = CustomModel(0, ctx.auth.id)
             Future.successful(Good(result))
           }
@@ -43,14 +42,14 @@ class TestController(implicit mat: Materializer) extends CustomJsonController {
     pathPrefix("authenticated-input") {
       path("model") {
         post {
-          authenticatedWithInput { ctx: AuthenticatedContextWithModel[CustomUser, CustomModel] =>
+          authenticatedWithInput { ctx: HasModel[CustomModel] with Authenticated =>
             Future.successful(Good(ctx.model))
           }
         }
       } ~
       path("model-custom-status") {
         post {
-          authenticatedWithInput[CustomModel, CustomModel](StatusCodes.Created) { ctx =>
+          authenticatedWithInput(StatusCodes.Created) { ctx: HasModel[CustomModel] with Authenticated =>
             Future.successful(Good(ctx.model))
           }
         }
@@ -97,28 +96,28 @@ class TestController(implicit mat: Materializer) extends CustomJsonController {
     pathPrefix("input") {
       path("model") {
         post {
-          publicWithInput { ctx: PublicContextWithModel[CustomModel] =>
+          publicWithInput { ctx: HasModel[CustomModel] =>
             Future.successful(Good(ctx.model))
           }
         }
       } ~
       path("model-custom-status") {
         post {
-          publicWithInput(StatusCodes.Created) { ctx: PublicContextWithModel[CustomModel] =>
+          publicWithInput(StatusCodes.Created) { ctx: HasModel[CustomModel] =>
             Future.successful(Good(ctx.model))
           }
         }
       } ~
       path("errors") {
         post {
-          publicWithInput { ctx: PublicContextWithModel[CustomModel] =>
+          publicWithInput { ctx: HasModel[CustomModel] =>
             errorsResponse
           }
         }
       } ~
       path("exception") {
         post {
-          publicWithInput { ctx: PublicContextWithModel[CustomModel] =>
+          publicWithInput { ctx: HasModel[CustomModel] =>
             exceptionResponse
           }
         }

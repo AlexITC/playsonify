@@ -12,7 +12,7 @@ import com.fasterxml.jackson.core.JsonParseException
 import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport
 import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport.PlayJsonError
 import org.scalactic.{Bad, Every, Good}
-import play.api.libs.json.Json
+import play.api.libs.json.{JsValue, Json}
 
 import scala.concurrent.Future
 import scala.util.{Failure, Success}
@@ -22,7 +22,15 @@ abstract class AbstractJsonController[+A](
     extends Directives
     with PlayJsonSupport {
 
-  import AbstractJsonController._
+  class RequestContext(val request: HttpRequest)
+
+  object RequestContext {
+
+    trait HasModel[+T] { def model: T }
+
+    trait Authenticated { def auth: A }
+  }
+
   import RequestContext._
 
   // Required to complete the calls to render messages
@@ -69,7 +77,7 @@ abstract class AbstractJsonController[+A](
   }
 
   def publicWithInput[I, O](successCode: StatusCode)(
-      f: PublicContextWithModel[I] => FutureApplicationResult[O])(
+      f: RequestContext with HasModel[I] => FutureApplicationResult[O])(
       implicit um: FromRequestUnmarshaller[I],
       rm: ToResponseMarshaller[O],
       mat: Materializer): Route = {
@@ -82,7 +90,7 @@ abstract class AbstractJsonController[+A](
   }
 
   def publicWithInput[I, O](
-      f: PublicContextWithModel[I] => FutureApplicationResult[O])(
+      f: RequestContext with HasModel[I] => FutureApplicationResult[O])(
       implicit um: FromRequestUnmarshaller[I],
       rm: ToResponseMarshaller[O],
       mat: Materializer): Route = {
@@ -92,7 +100,7 @@ abstract class AbstractJsonController[+A](
 
   def publicNoInput[O](
       successCode: StatusCode)(
-      f: PublicContext => FutureApplicationResult[O])(
+      f: RequestContext => FutureApplicationResult[O])(
       implicit rm: ToResponseMarshaller[O],
       mat: Materializer): Route = {
 
@@ -104,7 +112,7 @@ abstract class AbstractJsonController[+A](
   }
 
   def publicNoInput[O](
-      f: PublicContext => FutureApplicationResult[O])(
+      f: RequestContext => FutureApplicationResult[O])(
       implicit rm: ToResponseMarshaller[O],
       mat: Materializer): Route = {
 
@@ -113,7 +121,7 @@ abstract class AbstractJsonController[+A](
 
   def authenticatedNoInput[O](
       successCode: StatusCode)(
-      f: AuthenticatedContext[A] => FutureApplicationResult[O])(
+      f: RequestContext with Authenticated => FutureApplicationResult[O])(
       implicit rm: ToResponseMarshaller[O],
       mat: Materializer): Route = {
 
@@ -123,8 +131,11 @@ abstract class AbstractJsonController[+A](
       directive { ctx =>
         extractExecutionContext { implicit ec =>
           val result = for {
-            auth <- components.authenticatorService.authenticate(ctx.request).toFutureOr
-            authCtx = AuthenticatedContext(ctx.request, auth)
+            authObj <- components.authenticatorService.authenticate(ctx.request).toFutureOr
+            authCtx = new RequestContext(ctx.request) with Authenticated {
+
+              override val auth: A = authObj
+            }
             output <- f(authCtx).toFutureOr
           } yield output
 
@@ -135,7 +146,7 @@ abstract class AbstractJsonController[+A](
   }
 
   def authenticatedNoInput[O](
-      f: AuthenticatedContext[A] => FutureApplicationResult[O])(
+      f: RequestContext with Authenticated => FutureApplicationResult[O])(
       implicit rm: ToResponseMarshaller[O],
       mat: Materializer): Route = {
 
@@ -143,7 +154,7 @@ abstract class AbstractJsonController[+A](
   }
 
   def authenticatedWithInput[I, O](successCode: StatusCode)(
-      f: AuthenticatedContextWithModel[A, I] => FutureApplicationResult[O])(
+      f: RequestContext with Authenticated with HasModel[I] => FutureApplicationResult[O])(
       implicit um: FromRequestUnmarshaller[I],
       rm: ToResponseMarshaller[O],
       mat: Materializer): Route = {
@@ -154,8 +165,13 @@ abstract class AbstractJsonController[+A](
       directive { ctx =>
         extractExecutionContext { implicit ec =>
           val result = for {
-            auth <- components.authenticatorService.authenticate(ctx.request).toFutureOr
-            authCtx = AuthenticatedContextWithModel(ctx.request, auth, ctx.model)
+            authObj <- components.authenticatorService.authenticate(ctx.request).toFutureOr
+            authCtx = new RequestContext(ctx.request) with Authenticated with HasModel[I] {
+
+              override def auth: A = authObj
+
+              override def model: I = ctx.model
+            }
             output <- f(authCtx).toFutureOr
           } yield output
 
@@ -166,7 +182,7 @@ abstract class AbstractJsonController[+A](
   }
 
   def authenticatedWithInput[I, O](
-      f: AuthenticatedContextWithModel[A, I] => FutureApplicationResult[O])(
+      f: RequestContext with Authenticated with HasModel[I] => FutureApplicationResult[O])(
       implicit um: FromRequestUnmarshaller[I],
       rm: ToResponseMarshaller[O],
       mat: Materializer): Route = {
@@ -174,13 +190,13 @@ abstract class AbstractJsonController[+A](
     authenticatedWithInput[I, O](StatusCodes.OK)(f)
   }
 
-  def logServerErrors(errorId: ErrorId, errors: ApplicationErrors): Unit = {
+  private def logServerErrors(errorId: ErrorId, errors: ApplicationErrors): Unit = {
     errors
         .collect { case e: ServerError => e }
         .foreach { onServerError(_, errorId) }
   }
 
-  def renderResult[T](
+  private def renderResult[T](
       successCode: StatusCode,
       f: FutureApplicationResult[T])(
       implicit rm: ToResponseMarshaller[T]): Route = {
@@ -209,7 +225,7 @@ abstract class AbstractJsonController[+A](
   }
 
   // detect response status based on the first error
-  def getResultStatus(errors: ApplicationErrors): StatusCode = errors.head match {
+  private def getResultStatus(errors: ApplicationErrors): StatusCode = errors.head match {
     case _: InputValidationError => StatusCodes.BadRequest
     case _: ConflictError => StatusCodes.Conflict
     case _: NotFoundError => StatusCodes.NotFound
@@ -217,7 +233,7 @@ abstract class AbstractJsonController[+A](
     case _: ServerError => StatusCodes.InternalServerError
   }
 
-  def renderErrors(errors: ApplicationErrors) = {
+  private def renderErrors(errors: ApplicationErrors): JsValue = {
     val jsonErrorList = errors.toList
         .flatMap { error =>
           error.toPublicErrorList(components.i18nService)
@@ -226,27 +242,24 @@ abstract class AbstractJsonController[+A](
 
     Json.obj("errors" -> jsonErrorList)
   }
-}
 
-object AbstractJsonController {
-
-  import RequestContext._
-
-  def requestContextWithModelUnmarshaller[T](
+  private def requestContextWithModelUnmarshaller[T](
       implicit um: FromRequestUnmarshaller[T],
-      mat: Materializer): FromRequestUnmarshaller[PublicContextWithModel[T]] = {
+      mat: Materializer): FromRequestUnmarshaller[RequestContext with HasModel[T]] = {
 
-    Unmarshaller.apply[HttpRequest, PublicContextWithModel[T]] { implicit ec => request =>
+    Unmarshaller.apply[HttpRequest, RequestContext with HasModel[T]] { implicit ec => request =>
       um.apply(request)(ec, mat)
           .map { x =>
-            PublicContextWithModel(request, x)
+            new RequestContext(request) with HasModel[T] {
+              override def model: T = x
+            }
           }
     }
   }
 
-  def requestContextUnmarshaller(implicit mat: Materializer): FromRequestUnmarshaller[PublicContext] = {
-    Unmarshaller.strict[HttpRequest, PublicContext] { request =>
-      PublicContext(request)
+  private def requestContextUnmarshaller(implicit mat: Materializer): FromRequestUnmarshaller[RequestContext] = {
+    Unmarshaller.strict[HttpRequest, RequestContext] { request =>
+      new RequestContext(request)
     }
   }
 }
