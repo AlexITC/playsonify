@@ -65,7 +65,7 @@ object `playsonify-akka-http` extends PlaysonifyModule {
 
 trait PlaysonifyModule extends ScalaModule with PublishModule {
   def scalaVersion = "2.12.7"
-  def publishVersion = "2.0.0-SNAPSHOT"
+  def publishVersion = "2.0.0-RC0"
 
   val playframework = ivy"com.typesafe.play::play:2.6.20"
   val scalactic = ivy"org.scalactic::scalactic:3.0.5"
