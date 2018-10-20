@@ -38,7 +38,16 @@ abstract class AbstractJsonController[+A](
 
   protected def onServerError(error: ServerError, id: ErrorId): Unit
 
-  private val rejectionHandler = {
+  protected def withGlobalHandler: Directive0 = handleRejections(rejectionHandler)
+
+  protected val rejectionHandler = {
+    def notFoundHandler = {
+      val error = RouteNotFoundError
+      val badResult = Bad(error).accumulating
+      val result: FutureApplicationResult[String] = Future.successful(badResult)
+      renderResult(StatusCodes.NotFound, result)
+    }
+
     RejectionHandler
         .newBuilder()
         .handle { case ValidationRejection(_, Some(e: PlayJsonError)) =>
@@ -64,14 +73,11 @@ abstract class AbstractJsonController[+A](
           val badResult = Bad(error).accumulating
           val result: FutureApplicationResult[String] = Future.successful(badResult)
           renderResult(StatusCodes.BadRequest, result)
+        }.handle { case MethodRejection(_) =>
+          notFoundHandler
         }
         .handleNotFound {
-          // TODO: Fixme
-          println("NOT FOUND")
-          val error = RouteNotFoundError
-          val badResult = Bad(error).accumulating
-          val result: FutureApplicationResult[String] = Future.successful(badResult)
-          renderResult(StatusCodes.NotFound, result)
+          notFoundHandler
         }
         .result()
   }

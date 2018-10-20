@@ -20,11 +20,23 @@ class AbstractJsonControllerSpec
 
   "general pieces" should {
     "return json on unknown route" in {
-      pending
-
       val request = Get("/unknown")
       request ~> routes ~> check {
-        println(response)
+        status should ===(StatusCodes.NotFound)
+
+        val json = unmarshal[JsValue](response.entity).get
+        val errors = (json \ "errors").as[List[JsValue]]
+        errors.size should be(1)
+
+        val error = errors.head
+        (error \ "type").as[String] should be(PublicErrorRenderer.GenericErrorType)
+        (error \ "message").as[String].nonEmpty should be(true)
+      }
+    }
+
+    "return json on known route with unsupported method" in {
+      val request = Delete("/no-input/model")
+      request ~> routes ~> check {
         status should ===(StatusCodes.NotFound)
 
         val json = unmarshal[JsValue](response.entity).get

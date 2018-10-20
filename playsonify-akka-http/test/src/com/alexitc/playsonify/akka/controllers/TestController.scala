@@ -13,7 +13,7 @@ class TestController(implicit mat: Materializer) extends CustomJsonController {
 
   import Context._
 
-  def routes: Route = {
+  def routes: Route = withGlobalHandler {
     publicWithInputRoutes ~ publicNoInputRoutes ~ authenticatedNoInputRoutes ~ authenticatedWithInputRoutes
   }
 
