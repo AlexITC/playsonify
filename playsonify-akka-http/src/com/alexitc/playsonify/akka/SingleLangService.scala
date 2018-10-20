@@ -16,6 +16,8 @@ object SingleLangService {
 
   private val KnownTranslations = Map(
     "error.path.missing" -> "Field required",
+    "error.expected.jsstring" -> "String expected",
+    "error.expected.jsnumber" -> "Number expecteds",
     ServerError.messageKey.string -> "Internal server error"
   )
 }
