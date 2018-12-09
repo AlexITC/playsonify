@@ -72,13 +72,15 @@ abstract class AbstractJsonController[+A] (
    * Execute an asynchronous action that receives the model [[R]]
    * and returns the model [[M]] on success.
    *
-   * The model [[R]] is wrapped in a [[RequestContext]].
+   * The model [[R]] is wrapped in a [[Context]].
    *
    * Note: The request will not be authenticated.
    *
    * Example:
    * {{{
-   *   def createUser = publicWithInput(Created) { context: PublicContextWithModel[CreateUserModel] =>
+   *   import Context._
+   *
+   *   def createUser = publicInput(Created) { context: HasModel[CreateUserModel] =>
    *     ...
    *   }
    * }}}
@@ -115,7 +117,9 @@ abstract class AbstractJsonController[+A] (
    *
    * Example:
    * {{{
-   *   def login = publicWithInput { context: PublicContextWithModel[LoginModel] =>
+   *   import Context._
+   *
+   *   def login = publicInput { context: HasModel[LoginModel] =>
    *     ...
    *   }
    * }}}
@@ -138,7 +142,7 @@ abstract class AbstractJsonController[+A] (
    *
    * Example:
    * {{{
-   *   def verifyEmail(token: String) = publicNoInput { context: PublicContext =>
+   *   def verifyEmail(token: String) = public { context: Context =>
    *     ...
    *   }
    * }}}
@@ -166,7 +170,7 @@ abstract class AbstractJsonController[+A] (
    *
    * Example:
    * {{{
-   *   def verifyEmail(token: String) = publicNoInput(Created) { context: PublicContext =>
+   *   def verifyEmail(token: String) = public(Created) { context: Context =>
    *     ...
    *   }
    * }}}
@@ -189,13 +193,14 @@ abstract class AbstractJsonController[+A] (
    *
    * Example:
    * {{{
-   *   def setPreferences = authenticatedWithInput(Ok) { context: AuthenticatedContextWithModel[UserId, SetUserPreferencesModel] =>
+   *   import Context._
+   *
+   *   def setPreferences = authenticatedInput(Ok) { context: HasModel[SetUserPreferencesModel] with Authenticated =>
    *     ...
    *   }
    * }}}
    *
-   * Where UserId is what your custom [[AbstractAuthenticatorService]] returns on authenticated
-   * requests, also, there is an implicit deserializer for the SetUserPreferencesModel class.
+   * Where there is an implicit deserializer for the SetUserPreferencesModel class.
    *
    * @param successStatus the http status for a successful response
    * @param block the block to execute
@@ -231,13 +236,14 @@ abstract class AbstractJsonController[+A] (
    *
    * Example:
    * {{{
-   *   def setPreferences = authenticatedWithInput { context: AuthenticatedContextWithModel[UserId, SetUserPreferencesModel] =>
+   *   import Context._
+   *
+   *   def setPreferences = authenticatedInput { context: HasModel[SetUserPreferencesModel] with Authenticated =>
    *     ...
    *   }
    * }}}
    *
-   * Where UserId is what your custom [[AbstractAuthenticatorService]] returns on authenticated
-   * requests, also, there is an implicit deserializer for the SetUserPreferencesModel class.
+   * Where there is an implicit deserializer for the SetUserPreferencesModel class.
    */
   def authenticatedInput[R: Reads, M](
       block: Context with Authenticated with HasModel[R] => FutureApplicationResult[M])(
@@ -254,13 +260,12 @@ abstract class AbstractJsonController[+A] (
    *
    * Example:
    * {{{
-   *   def whoAmI() = authenticatedNoInput { context: AuthenticatedContext[UserId] =>
+   *   import Context._
+   *
+   *   def whoAmI() = authenticated { context: Authenticated =>
    *     ...
    *   }
    * }}}
-   *
-   * Where UserId is what your custom [[AbstractAuthenticatorService]] returns on authenticated
-   * requests.
    *
    * @param successStatus the http status for a successful response
    * @param block the block to execute
@@ -292,13 +297,10 @@ abstract class AbstractJsonController[+A] (
    *
    * Example:
    * {{{
-   *   def whoAmI() = authenticatedNoInput { context: AuthenticatedContext[UserId] =>
+   *   def whoAmI() = authenticated { context: Authenticated =>
    *     ...
    *   }
    * }}}
-   *
-   * Where UserId is what your custom [[AbstractAuthenticatorService]] returns on authenticated
-   * requests.
    */
   def authenticated[M](
       block: Context with Authenticated => FutureApplicationResult[M])(

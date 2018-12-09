@@ -5,7 +5,7 @@ import play.api.libs.json.JsValue
 import play.api.mvc.Request
 
 /**
- * Allow to authenticate a request and map it to a value with type [[T]].
+ * Allow to authenticate a request and map it to a value with type [[A]].
  *
  * A dummy service that gets the user id from the "Authorization" header or uses -1
  * when the header is not present could look like this, NEVER USE THIS PIECE OF CODE:

@@ -1,8 +1,6 @@
 package com.alexitc.playsonify.play
 
 import _root_.play.api.mvc.MessagesControllerComponents
-import com.alexitc.playsonify.core.I18nService
-import play.api.i18n.Lang
 
 import scala.concurrent.ExecutionContext
 
@@ -18,7 +16,12 @@ trait JsonControllerComponents[+A] {
    */
   def messagesControllerComponents: MessagesControllerComponents
 
-  def i18nService: I18nService[Lang]
+  /**
+   * The service for rendering messages in different languages.
+   *
+   * Injecting it should be enough.
+   */
+  def i18nService: I18nPlayService
 
   /**
    * The execution context where all light-weight operations are going to run,
