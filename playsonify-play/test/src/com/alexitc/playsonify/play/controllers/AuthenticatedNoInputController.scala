@@ -9,7 +9,7 @@ import scala.concurrent.Future
 
 class AuthenticatedNoInputController @Inject() (cc: CustomControllerComponents) extends CustomJsonController(cc) {
 
-  def getModel(int: Int, string: String) = authenticatedNoInput { context =>
+  def getModel(int: Int, string: String) = authenticated { _ =>
     val result = CustomModel(int, string)
     Future.successful(Good(result))
   }

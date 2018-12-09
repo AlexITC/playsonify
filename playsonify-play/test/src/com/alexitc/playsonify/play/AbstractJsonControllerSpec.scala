@@ -1,6 +1,6 @@
 package com.alexitc.playsonify.play
 
-import com.alexitc.playsonify.play.controllers.{AuthenticatedNoInputController, PublicNoInputController, PublicWithInputController}
+import com.alexitc.playsonify.play.controllers.{AuthenticatedNoInputController, PublicController, PublicWithInputController}
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.play.PlaySpec
 import play.api.Mode
@@ -17,8 +17,8 @@ class AbstractJsonControllerSpec extends PlaySpec with ScalaFutures {
 
   val injector = application.injector
 
-  "publicNoInput" should {
-    val controller = injector.instanceOf[PublicNoInputController]
+  "public" should {
+    val controller = injector.instanceOf[PublicController]
 
     "serialize a result as json" in {
       val int = 0
@@ -72,7 +72,7 @@ class AbstractJsonControllerSpec extends PlaySpec with ScalaFutures {
     }
   }
 
-  "publicWithInput" should {
+  "publicInput" should {
     val controller = injector.instanceOf[PublicWithInputController]
 
     "serialize a result as json" in {
@@ -246,7 +246,7 @@ class AbstractJsonControllerSpec extends PlaySpec with ScalaFutures {
     }
   }
 
-  "authenticatedNoInput" should {
+  "authenticatedInput" should {
     val controller = injector.instanceOf[AuthenticatedNoInputController]
 
     "return UNAUTHORIZED when no AUTHORIZATION header is present" in {

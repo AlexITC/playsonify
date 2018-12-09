@@ -37,6 +37,17 @@ abstract class AbstractJsonController[+A] (
     components: JsonControllerComponents[A])
     extends MessagesBaseController {
 
+  class Context(val request: MessagesRequest[JsValue], val lang: Lang)
+
+  object Context {
+
+    trait HasModel[+T] { def model: T }
+
+    trait Authenticated { def auth: A }
+  }
+
+  import Context._
+
   override protected val controllerComponents: MessagesControllerComponents = components.messagesControllerComponents
 
   protected implicit val ec = components.executionContext
@@ -81,19 +92,22 @@ abstract class AbstractJsonController[+A] (
    * @tparam R the input model type
    * @tparam M the output model type
    */
-  def publicWithInput[R: Reads, M](
+  def publicInput[R: Reads, M](
       successStatus: Status)(
-      block: RequestContext.PublicContextWithModel[R] => FutureApplicationResult[M])(
+      block: Context with HasModel[R] => FutureApplicationResult[M])(
       implicit tjs: Writes[M]): Action[JsValue] = Action.async(parse.json) { request =>
 
     val result = for {
       input <- validate[R](request.body).toFutureOr
-      context = RequestContext.PublicContextWithModel(input, messagesApi.preferred(request).lang)
+      lang = messagesApi.preferred(request).lang
+      context = new Context(request, lang) with HasModel[R] {
+        override def model: R = input
+      }
       output <- block(context).toFutureOr
     } yield output
 
     val lang = messagesApi.preferred(request).lang
-    toResult(successStatus, result.toFuture)(lang, tjs)
+    renderResult(successStatus, result.toFuture)(lang, tjs)
   }
 
   /**
@@ -109,11 +123,11 @@ abstract class AbstractJsonController[+A] (
    * Where there is an implicit deserializer for the LoginModel class, in case of a successful result,
    * the HTTP status Ok (200) will be returned.
    */
-  def publicWithInput[R: Reads, M](
-      block: RequestContext.PublicContextWithModel[R] => FutureApplicationResult[M])(
+  def publicInput[R: Reads, M](
+      block: Context with HasModel[R] => FutureApplicationResult[M])(
       implicit tjs: Writes[M]): Action[JsValue] = {
 
-    publicWithInput[R, M](Ok)(block)
+    publicInput[R, M](Ok)(block)
   }
 
   /**
@@ -136,15 +150,15 @@ abstract class AbstractJsonController[+A] (
    * @param tjs the serializer for [[M]]
    * @tparam M the output model type
    */
-  def publicNoInput[M](
+  def public[M](
       successStatus: Status)(
-      block: RequestContext.PublicContext => FutureApplicationResult[M])(
+      block: Context => FutureApplicationResult[M])(
       implicit tjs: Writes[M]): Action[JsValue] = Action.async(EmptyJsonParser) { request =>
 
-    val context = RequestContext.PublicContext(messagesApi.preferred(request).lang)
-    val result = block(context)
     val lang = messagesApi.preferred(request).lang
-    toResult(successStatus, result)(lang, tjs)
+    val context = new Context(request, lang)
+    val result = block(context)
+    renderResult(successStatus, result)(lang, tjs)
   }
 
   /**
@@ -159,11 +173,11 @@ abstract class AbstractJsonController[+A] (
    *
    * In case of a successful result, the HTTP status Created (201) will be returned.
    */
-  def publicNoInput[M](
-      block: RequestContext.PublicContext => FutureApplicationResult[M])(
+  def public[M](
+      block: Context => FutureApplicationResult[M])(
       implicit tjs: Writes[M]): Action[JsValue] = {
 
-    publicNoInput[M](Ok)(block)
+    public[M](Ok)(block)
   }
 
   /**
@@ -189,20 +203,25 @@ abstract class AbstractJsonController[+A] (
    * @tparam R the input model type
    * @tparam M the output model type
    */
-  def authenticatedWithInput[R: Reads, M](
+  def authenticatedInput[R: Reads, M](
       successStatus: Status)(
-      block: RequestContext.AuthenticatedContextWithModel[A, R] => FutureApplicationResult[M])(
+      block: Context with Authenticated with HasModel[R] => FutureApplicationResult[M])(
       implicit tjs: Writes[M]): Action[JsValue] = Action.async(parse.json) { request =>
 
     val lang = messagesApi.preferred(request).lang
     val result = for {
       input <- validate[R](request.body).toFutureOr
       authValue <- components.authenticatorService.authenticate(request).toFutureOr
-      context = RequestContext.AuthenticatedContextWithModel(authValue, input, lang)
+      lang = messagesApi.preferred(request).lang
+      context = new Context(request, lang) with HasModel[R] with Authenticated {
+        override def model: R = input
+
+        override def auth: A = authValue
+      }
       output <- block(context).toFutureOr
     } yield output
 
-    toResult(successStatus, result.toFuture)(lang, tjs)
+    renderResult(successStatus, result.toFuture)(lang, tjs)
   }
 
   /**
@@ -220,11 +239,11 @@ abstract class AbstractJsonController[+A] (
    * Where UserId is what your custom [[AbstractAuthenticatorService]] returns on authenticated
    * requests, also, there is an implicit deserializer for the SetUserPreferencesModel class.
    */
-  def authenticatedWithInput[R: Reads, M](
-      block: RequestContext.AuthenticatedContextWithModel[A, R] => FutureApplicationResult[M])(
+  def authenticatedInput[R: Reads, M](
+      block: Context with Authenticated with HasModel[R] => FutureApplicationResult[M])(
       implicit tjs: Writes[M]): Action[JsValue] = {
 
-    authenticatedWithInput[R, M](Ok)(block)
+    authenticatedInput[R, M](Ok)(block)
   }
 
   /**
@@ -248,19 +267,22 @@ abstract class AbstractJsonController[+A] (
    * @param tjs the serializer for [[M]]
    * @tparam M the output model type
    */
-  def authenticatedNoInput[M](
+  def authenticated[M](
       successStatus: Status)(
-      block: RequestContext.AuthenticatedContext[A] => FutureApplicationResult[M])(
+      block: Context with Authenticated => FutureApplicationResult[M])(
       implicit tjs: Writes[M]): Action[JsValue] = Action.async(EmptyJsonParser) { request =>
 
     val lang = messagesApi.preferred(request).lang
     val result = for {
       authValue <- components.authenticatorService.authenticate(request).toFutureOr
-      context = RequestContext.AuthenticatedContext(authValue, lang)
+      lang = messagesApi.preferred(request).lang
+      context = new Context(request, lang) with Authenticated {
+        override def auth: A = authValue
+      }
       output <- block(context).toFutureOr
     } yield output
 
-    toResult(successStatus, result.toFuture)(lang, tjs)
+    renderResult(successStatus, result.toFuture)(lang, tjs)
   }
 
   /**
@@ -278,11 +300,11 @@ abstract class AbstractJsonController[+A] (
    * Where UserId is what your custom [[AbstractAuthenticatorService]] returns on authenticated
    * requests.
    */
-  def authenticatedNoInput[M](
-      block: RequestContext.AuthenticatedContext[A] => FutureApplicationResult[M])(
+  def authenticated[M](
+      block: Context with Authenticated => FutureApplicationResult[M])(
       implicit tjs: Writes[M]): Action[JsValue] = {
 
-    authenticatedNoInput[M](Ok)(block)
+    authenticated[M](Ok)(block)
   }
 
   private def validate[R: Reads](json: JsValue): ApplicationResult[R] = {
@@ -304,7 +326,7 @@ abstract class AbstractJsonController[+A] (
     )
   }
 
-  private def toResult[M](
+  private def renderResult[M](
       successStatus: Status,
       response: FutureApplicationResult[M])(
       implicit lang: Lang,
@@ -339,6 +361,12 @@ abstract class AbstractJsonController[+A] (
     successStatus.apply(json)
   }
 
+  private def logServerErrors(errorId: ErrorId, errors: ApplicationErrors): Unit = {
+    errors
+        .collect { case e: ServerError => e }
+        .foreach(onServerError)
+  }
+
   // detect response status based on the first error
   private def getResultStatus(errors: ApplicationErrors): Results.Status = errors.head match {
     case _: InputValidationError => Results.BadRequest
@@ -356,11 +384,5 @@ abstract class AbstractJsonController[+A] (
         .map(components.publicErrorRenderer.renderPublicError)
 
     Json.obj("errors" -> jsonErrorList)
-  }
-
-  private def logServerErrors(errorId: ErrorId, errors: ApplicationErrors): Unit = {
-    errors
-        .collect { case e: ServerError => e }
-        .foreach(onServerError)
   }
 }
