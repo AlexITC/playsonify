@@ -50,6 +50,17 @@ The library has been tested with the following versions, it might work with othe
 Please notice that the documentation is specific to play-framework, while most concepts apply, you can look into the akka-http tests to see what's different:
 - [akka-http TestController](playsonify-akka-http/test/src/com/alexitc/playsonify/akka/controllers/TestController.scala)
 
+Add these lines to your `build.sbt` file to get the integration with akka-http:
+```scala
+val playsonifyVersion = "2.0.0"
+
+libraryDependencies ++= Seq(
+  "com.alexitc" %% "playsonify-core" % playsonifyVersion,
+  "com.alexitc" %% "playsonify-akka-http" % playsonifyVersion,
+  "com.alexitc" %% "playsonify-sql" % playsonifyVersion
+)
+```
+
 
 ## Name
 The name `playsonify` was inspired by mixing the `JSON.stringify` function from JavaScript and the Play Framework which is what it is built for (it might be worth considering another name now that akka-http is supported).
@@ -254,6 +265,8 @@ The documentation assumes that you are already familiar with play-framework and 
 ### Add dependencies
 Add these lines to your `build.sbt` file:
 ```scala
+val playsonifyVersion = "2.0.0"
+
 libraryDependencies ++= Seq(
   "com.alexitc" %% "playsonify-core" % playsonifyVersion,
   "com.alexitc" %% "playsonify-play" % playsonifyVersion,
