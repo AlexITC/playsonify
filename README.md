@@ -5,7 +5,7 @@
 [![Join the chat at https://gitter.im/playsonify/Lobby](https://badges.gitter.im/playsonify/Lobby.svg)](https://gitter.im/playsonify/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 [![Maven Central](https://img.shields.io/maven-central/v/com.alexitc/playsonify_2.12.svg)](https://maven-badges.herokuapp.com/maven-central/com.alexitc/playsonify_2.12)
 
-An opinionated library to help you build JSON APIs in a practical way using Play Framework
+An opinionated micro-framework that helps you to build JSON APIs in a practical way, currently supporting Play Framework, also, there is experimental support for akka-http.
 
 
 
@@ -34,20 +34,25 @@ An opinionated library to help you build JSON APIs in a practical way using Play
 - [Development](#development)
   - [Compile](#compile)
   - [Test](#test)
-  - [Integrate with IntelliJ](#integrate-with-intellij)
+  - [Integrate with IntelliJ](#integrate-with-intellij)````
 
 
 
 ## State
-while there are not too many commits in the project, the library has been used for some months on the [Crypto Coin Alerts project](https://github.com/AlexITC/crypto-coin-alerts) and it's in a stable state.
+This library has been used for a year on the [Crypto Coin Alerts project](https://github.com/AlexITC/crypto-coin-alerts) project.
 
 ## Support
-The library has been tested with the following versions, it might work with other versions while that is not official support for versions that are not in this list.
+The library has been tested with the following versions, it might work with other versions that are not officially supported.
 - Scala 2.12
 - Play Framework 2.6
+- akka-http 10.1.5
+
+Please notice that the documentation is specific to play-framework, while most concepts apply, you can look into the akka-http tests to see what's different:
+- [akka-http TestController](playsonify-akka-http/test/src/com/alexitc/playsonify/akka/controllers/TestController.scala)
+
 
 ## Name
-The name `playsonify` was inspired by mixing the `JSON.stringify` function from JavaScript and the Play Framework which is what it is built for.
+The name `playsonify` was inspired by mixing the `JSON.stringify` function from JavaScript and the Play Framework which is what it is built for (it might be worth considering another name now that akka-http is supported).
 
 
 ## Features
@@ -59,7 +64,8 @@ The name `playsonify` was inspired by mixing the `JSON.stringify` function from 
 - Keeps error responses consistent.
 - Authenticate requests easily.
 - HTTP Idiomatic controller tests.
-
+- Primitives for offset-based pagination.
+- Primitives for sorting results.
 
 
 ## What can playsonify do?
@@ -89,7 +95,9 @@ Define a controller:
 class HelloWorldController @Inject() (components: MyJsonControllerComponents)
     extends MyJsonController(components) {
 
-  def hello = publicWithInput { context: PublicContextWithModel[Person] =>
+  import Context._
+
+  def hello = publicInput { context: HasModel[Person] =>
     val msg = s"Hello ${context.model.name}, you are ${context.model.age} years old"
     val helloMessage = HelloMessage(msg)
     val goodResult = Good(helloMessage)
@@ -97,7 +105,7 @@ class HelloWorldController @Inject() (components: MyJsonControllerComponents)
     Future.successful(goodResult)
   }
 
-  def authenticatedHello = authenticatedNoInput { context: AuthenticatedContext[Int] =>
+  def authenticatedHello = authenticated { context: Authenticated =>
     val msg = s"Hello user with id ${context.auth}"
     val helloMessage = HelloMessage(msg)
     val goodResult = Good(helloMessage)
@@ -105,14 +113,17 @@ class HelloWorldController @Inject() (components: MyJsonControllerComponents)
     Future.successful(goodResult)
   }
 
-  def failedHello = publicNoInput[HelloMessage] { context: PublicContext =>
-    val errors = Every(UserEmailIncorrectError, UserAlreadyExistError, UserNotFoundError)
-    val badResult = Bad(errors)
+  def failedHello = public[HelloMessage] { context: Context =>
+    val errors = Every(
+      UserError.UserEmailIncorrect,
+      UserError.UserAlreadyExist,
+      UserError.UserNotFound)
 
+    val badResult = Bad(errors)
     Future.successful(badResult)
   }
 
-  def exceptionHello = publicNoInput[HelloMessage] { context: PublicContext =>
+  def exceptionHello = public[HelloMessage] { context: Context =>
     Future.failed(new RuntimeException("database unavailable"))
   }
 }
@@ -165,12 +176,13 @@ Response:
 ```
 < HTTP/1.1 500 Internal Server Error
 {
-   "errors":[
-      {
-         "type":"server-error",
-         "errorId":"bc49d715fb8d4255a62c30d13322205b"
-      }
-   ]
+    "errors": [
+        {
+            "errorId": "ab5beaf9307a4e1ab90d242786a84b29", 
+            "message": "Internal error", 
+            "type": "server-error"
+        }
+    ]
 }
 ```
 
@@ -234,16 +246,21 @@ class HelloWorldControllerSpec extends MyPlayAPISpec {
 ```
 
 ## Usage
-The documentation might be incomplete, you can take a look to these examples:
-- The [tests](playsonify/test/src/com/alexitc/playsonify/controllers).
+The documentation assumes that you are already familiar with play-framework and it might be incomplete, you can always look into these applications:
 - The [example application](examples/simple-app).
-- The controllers from the [Crypto Coin Alerts project](https://github.com/AlexITC/crypto-coin-alerts/tree/master/alerts-server/app/controllers).
-
+- The [Crypto Coin Alerts project](https://github.com/AlexITC/crypto-coin-alerts/tree/master/alerts-server/app/controllers).
+- The [XSN Block Explorer project](https://github.com/X9Developers/block-explorer/tree/master/server/app/controllers)
 
 ### Add dependencies
 Add these lines to your `build.sbt` file:
-- `libraryDependencies += "com.alexitc" %% "playsonify" % "1.2.0"`
-- `libraryDependencies += "com.alexitc" %% "playsonifytest" % "1.2.0" % Test` (optional, useful for testing).
+```scala
+libraryDependencies ++= Seq(
+  "com.alexitc" %% "playsonify-core" % playsonifyVersion,
+  "com.alexitc" %% "playsonify-play" % playsonifyVersion,
+  "com.alexitc" %% "playsonify-sql" % playsonifyVersion,
+  "com.alexitc" %% "playsonify-play-test" % playsonifyVersion % Test // optional, useful for testing
+)
+```
 
 
 ### Familiarize with scalactic Or and Every
@@ -253,12 +270,13 @@ As you might have noted, the use of scalactic could be easily replaced with `sca
 
 
 ### Familiarize with our type aliases
-There are some type aliases that are helpful to not be nesting a lot of types on the method signatures, see the [core package](playsonify/src/com/alexitc/playsonify/core/package.scala), it looks like this:
+There are some type aliases that are helpful to not be nesting a lot of types on the method signatures, see the [core package](playsonify-core/src/com/alexitc/playsonify/core/package.scala), it looks like this:
 
 ```scala
 type ApplicationErrors = Every[ApplicationError]
 type ApplicationResult[+A] = A Or ApplicationErrors
 type FutureApplicationResult[+A] = Future[ApplicationResult[A]]
+type FuturePaginatedResult[+A] = FutureApplicationResult[PaginatedResult[A]]
 ```
 
 - `ApplicationErrors` represents a non-empty list of errors.
@@ -266,7 +284,7 @@ type FutureApplicationResult[+A] = Future[ApplicationResult[A]]
 - `FutureApplicationResult` represents a result or a non-empty list of error that will be available in the future (asynchronous result).
 
 ### Create your application specific errors
-We have already defined some top-level [application errors](playsonify/src/com/alexitc/playsonify/models/applicationErrors.scala), you are required to extend them in your error classes, this is crucial to get the correct mapping from an error to the HTTP status.
+We have already defined some top-level [application errors](playsonify-core/src/com/alexitc/playsonify/models/applicationErrors.scala), you are required to extend them in your error classes, this is crucial to get the correct mapping from an error to the HTTP status.
 ```scala
 trait InputValidationError extends ApplicationError
 trait ConflictError extends ApplicationError
@@ -274,40 +292,44 @@ trait NotFoundError extends ApplicationError
 trait AuthenticationError extends ApplicationError
 trait ServerError extends ApplicationError {
   // contains data private to the server
-  def cause: Throwable
+  def cause: Option[Throwable]
 }
 ```
 
 For example, let's say that we want to define the possible errors related to a user, we could define some errors:
 ```scala
+
 sealed trait UserError
 
-case object UserAlreadyExistError extends UserError with ConflictError {
-  override def toPublicErrorList(messagesApi: MessagesApi)(implicit lang: Lang): List[PublicError] = {
-    val message = messagesApi("user.error.alreadyExist")
-    val error = FieldValidationError("email", message)
-    List(error)
-  }
-}
+object UserError {
 
-case object UserNotFoundError extends UserError with NotFoundError {
-  override def toPublicErrorList(messagesApi: MessagesApi)(implicit lang: Lang): List[PublicError] = {
-    val message = messagesApi("user.error.notFound")
-    val error = FieldValidationError("userId", message)
-    List(error)
+  case object UserAlreadyExist extends UserError with ConflictError {
+    override def toPublicErrorList[L](i18nService: I18nService[L])(implicit lang: L): List[PublicError] = {
+      val message = i18nService.render("user.error.alreadyExist")
+      val error = FieldValidationError("email", message)
+      List(error)
+    }
   }
-}
 
-case object UserEmailIncorrectError extends UserError with InputValidationError {
-  override def toPublicErrorList(messagesApi: MessagesApi)(implicit lang: Lang): List[PublicError] = {
-    val message = messagesApi("user.error.incorrectEmail")
-    val error = FieldValidationError("email", message)
-    List(error)
+  case object UserNotFound extends UserError with NotFoundError {
+    override def toPublicErrorList[L](i18nService: I18nService[L])(implicit lang: L): List[PublicError] = {
+      val message = i18nService.render("user.error.notFound")
+      val error = FieldValidationError("userId", message)
+      List(error)
+    }
+  }
+
+  case object UserEmailIncorrect extends UserError with InputValidationError {
+    override def toPublicErrorList[L](i18nService: I18nService[L])(implicit lang: L): List[PublicError] = {
+      val message = i18nService.render("user.error.incorrectEmail")
+      val error = FieldValidationError("email", message)
+      List(error)
+    }
   }
 }
 ```
 
-Then, when playsonify detect a `Bad` result, it will map the error to an HTTP status code in the following way:
+Then, when playsonify detects a `Bad` result, it will map the error to an HTTP status code in the following way:
 - InputValidationError -> 404 (BAD_REQUEST).
 - ConflictError -> 409 (CONFLICT).
 - NotFoundError -> 404 (NOT_FOUND).
@@ -322,21 +344,25 @@ Notice that the you have the preferred user language to render errors in that la
 
 
 ### Define your authenticataion mechanism
-You are required to define your own [AbstractAuthenticatorService](playsonify/src/com/alexitc/playsonify/AbstractAuthenticatorService.scala), this service have the responsibility to decide which requests are aunthenticated and which ones are not, you first task is to define a model to represent an authenticated request, it is common to take the user or the user id for this, this model will be available in your controllers while dealing with authenticated requests.
+You are required to define your own [AbstractAuthenticatorService](playsonify-play/src/com/alexitc/playsonify/play/AbstractAuthenticatorService.scala), this service have the responsibility to decide which requests are authenticated and which ones are not, you first task is to define a model to represent an authenticated request, it is common to take the user or the user id for this, this model will be available in your controllers while dealing with authenticated requests.
 
 For example, suppose that we'll use an `Int` to represent the id of the user performing the request, at first, define the errors that represents that a request wasn't authenticated, like this:
 
 ```scala
 sealed trait SimpleAuthError
 
-case object InvalidAuthorizationHeaderError extends SimpleAuthError with AuthenticationError {
+object SimpleAuthError {
 
-  override def toPublicErrorList(messagesApi: MessagesApi)(implicit lang: Lang): List[PublicError] = {
-    val message = messagesApi("auth.error.invalidToken")
-    val error = HeaderValidationError("Authorization", message)
-    List(error)
+  case object InvalidAuthorizationHeader extends SimpleAuthError with AuthenticationError {
+
+    override def toPublicErrorList[L](i18nService: I18nService[L])(implicit lang: L): List[PublicError] = {
+      val message = i18nService.render("auth.error.invalidToken")
+      val error = HeaderValidationError("Authorization", message)
+      List(error)
+    }
   }
 }
+
 ```
 
 You could have defined the errors without the `SimpleAuthError` trait, I prefer to define a parent trait just in case that I need to use the errors in another part of the application.
@@ -352,7 +378,7 @@ class DummyAuthenticatorService extends AbstractAuthenticatorService[Int] {
       .get(HeaderNames.AUTHORIZATION)
       .flatMap { header => Try(header.toInt).toOption }
 
-    val result = Or.from(userIdMaybe, One(InvalidAuthorizationHeaderError))
+    val result = Or.from(userIdMaybe, One(SimpleAuthError.InvalidAuthorizationHeader))
     Future.successful(result)
   }
 }
@@ -371,8 +397,10 @@ class MyJsonControllerComponents @Inject() (
     override val messagesControllerComponents: MessagesControllerComponents,
     override val executionContext: ExecutionContext,
     override val publicErrorRenderer: PublicErrorRenderer,
+    override val i18nService: I18nPlayService,
     override val authenticatorService: DummyAuthenticatorService)
     extends JsonControllerComponents[Int]
+
 ```
 
 Here you have a real example: [MyJsonControllerComponents](https://github.com/AlexITC/crypto-coin-alerts/blob/master/alerts-server/app/controllers/MyJsonControllerComponents.scala).
@@ -380,17 +408,24 @@ Here you have a real example: [MyJsonControllerComponents](https://github.com/Al
 
 
 ### Define your AbstractJsonController
-Last, we need to define your customized [AbstractJsonController](playsonify/src/com/alexitc/playsonify/AbstractJsonController.scala), using guice dependency injection could lead us to this example:
+Last, we need to define your customized [AbstractJsonController](playsonify-play/src/com/alexitc/playsonify/play/JsonControllerComponents.scala), using guice dependency injection could lead us to this example:
 
 ```scala
 abstract class MyJsonController(components: MyJsonControllerComponents) extends AbstractJsonController(components) {
 
   protected val logger = LoggerFactory.getLogger(this.getClass)
 
-  override protected def onServerError(error: ServerError, errorId: ErrorId): Unit = {
-    logger.error(s"Unexpected internal error = ${errorId.string}", error.cause)
+  override protected def onServerError(error: ServerError): Unit = {
+    error.cause match {
+      case Some(cause) =>
+        logger.error(s"Unexpected internal error, id = ${error.id.string}, error = $error", cause)
+
+      case None =>
+        logger.error(s"Unexpected internal error, id = ${error.id.string}, error = $error}")
+    }
   }
 }
+
 ```
 
 Here you have a real example: [MyJsonController](https://github.com/AlexITC/crypto-coin-alerts/blob/master/alerts-server/app/controllers/MyJsonController.scala).
@@ -420,7 +455,9 @@ And the controller:
 class HelloWorldController @Inject() (components: MyJsonControllerComponents)
     extends MyJsonController(components) {
 
-  def hello = publicWithInput { context: PublicContextWithModel[Person] =>
+  import Context._
+
+  def hello = publicInput { context: HasModel[Person] =>
     val msg = s"Hello ${context.model.name}, you are ${context.model.age} years old"
     val helloMessage = HelloMessage(msg)
     val goodResult = Good(helloMessage)
@@ -433,7 +470,7 @@ class HelloWorldController @Inject() (components: MyJsonControllerComponents)
 What about authenticating the request?
 ```scala
 ...
-  def authenticatedHello = authenticatedNoInput { context: AuthenticatedContext[Int] =>
+  def authenticatedHello = authenticated { context: Authenticated =>
     val msg = s"Hello user with id ${context.auth}"
     val helloMessage = HelloMessage(msg)
     val goodResult = Good(helloMessage)
