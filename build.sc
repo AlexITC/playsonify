@@ -63,6 +63,23 @@ object `playsonify-akka-http` extends PlaysonifyModule {
   }
 }
 
+object `playsonify-sql` extends PlaysonifyModule {
+  def moduleDeps = Seq(`playsonify-core`)
+
+  def ivyDeps = Agg(
+    scalactic
+  )
+
+  object test extends Tests {
+
+    def ivyDeps = Agg(
+      scalatest
+    )
+
+    def testFrameworks = Seq("org.scalatest.tools.Framework")
+  }
+}
+
 trait PlaysonifyModule extends ScalaModule with PublishModule {
   def scalaVersion = "2.12.7"
   def publishVersion = "2.0.0-RC0"
