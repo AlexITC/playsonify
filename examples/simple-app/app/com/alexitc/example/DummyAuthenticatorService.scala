@@ -22,4 +22,3 @@ class DummyAuthenticatorService extends AbstractAuthenticatorService[Int] {
     Future.successful(result)
   }
 }
-

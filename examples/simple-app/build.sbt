@@ -5,13 +5,14 @@ scalaVersion := "2.12.2"
 lazy val root = (project in file("."))
     .enablePlugins(PlayScala)
 
-val playsonifyVersion = "2.0.0-SNAPSHOT"
+val playsonifyVersion = "2.0.0"
 
 libraryDependencies ++= Seq(guice)
 
 libraryDependencies ++= Seq(
   "com.alexitc" %% "playsonify-core" % playsonifyVersion,
   "com.alexitc" %% "playsonify-play" % playsonifyVersion,
+  "com.alexitc" %% "playsonify-sql" % playsonifyVersion,
   "com.alexitc" %% "playsonify-play-test" % playsonifyVersion % Test
 )
 

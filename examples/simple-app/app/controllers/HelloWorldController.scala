@@ -3,10 +3,8 @@ package controllers
 import javax.inject.Inject
 
 import com.alexitc.example.UserError
-import com.alexitc.playsonify.models.{AuthenticatedContext, PublicContext, PublicContextWithModel}
 import controllers.common.{MyJsonController, MyJsonControllerComponents}
 import org.scalactic.{Bad, Every, Good}
-import play.api.i18n.Lang
 import play.api.libs.json.{Json, Reads, Writes}
 
 import scala.concurrent.Future
@@ -14,7 +12,9 @@ import scala.concurrent.Future
 class HelloWorldController @Inject() (components: MyJsonControllerComponents)
     extends MyJsonController(components) {
 
-  def hello = publicWithInput { context: PublicContextWithModel[Person, Lang] =>
+  import Context._
+
+  def hello = publicInput { context: HasModel[Person] =>
     val msg = s"Hello ${context.model.name}, you are ${context.model.age} years old"
     val helloMessage = HelloMessage(msg)
     val goodResult = Good(helloMessage)
@@ -22,7 +22,7 @@ class HelloWorldController @Inject() (components: MyJsonControllerComponents)
     Future.successful(goodResult)
   }
 
-  def authenticatedHello = authenticatedNoInput { context: AuthenticatedContext[Int, Lang] =>
+  def authenticatedHello = authenticated { context: Authenticated =>
     val msg = s"Hello user with id ${context.auth}"
     val helloMessage = HelloMessage(msg)
     val goodResult = Good(helloMessage)
@@ -30,7 +30,7 @@ class HelloWorldController @Inject() (components: MyJsonControllerComponents)
     Future.successful(goodResult)
   }
 
-  def failedHello = publicNoInput[HelloMessage] { context: PublicContext[Lang] =>
+  def failedHello = public[HelloMessage] { context: Context =>
     val errors = Every(
       UserError.UserEmailIncorrect,
       UserError.UserAlreadyExist,
@@ -40,7 +40,7 @@ class HelloWorldController @Inject() (components: MyJsonControllerComponents)
     Future.successful(badResult)
   }
 
-  def exceptionHello = publicNoInput[HelloMessage] { context: PublicContext[Lang] =>
+  def exceptionHello = public[HelloMessage] { context: Context =>
     Future.failed(new RuntimeException("database unavailable"))
   }
 }

@@ -1,3 +1,7 @@
 user.error.alreadyExist=The user already exist
 user.error.notFound=The user was not found
 user.error.incorrectEmail=The email format is incorrect
+
+auth.error.invalidToken=The authentication token is invalid
+
+error.internal=Internal error
