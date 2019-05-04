@@ -45,6 +45,10 @@ trait DefaultCodecs {
               }
         }
   }
+
+  implicit def everyWrites[T](implicit writesT: Writes[T]): Writes[Every[T]] = Writes[Every[T]] { o =>
+    Json.toJson(o.toList)
+  }
 }
 
 object DefaultCodecs extends DefaultCodecs
