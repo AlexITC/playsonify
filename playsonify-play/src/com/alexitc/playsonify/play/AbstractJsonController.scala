@@ -66,7 +66,7 @@ abstract class AbstractJsonController[+A] (
    *
    * Useful for using methods that doesn't require input.
    */
-  private val EmptyJsonParser = parse.ignore(Json.toJson(JsObject.empty))
+  protected val EmptyJsonParser = parse.ignore(Json.toJson(JsObject.empty))
 
   /**
    * Execute an asynchronous action that receives the model [[R]]
@@ -309,7 +309,7 @@ abstract class AbstractJsonController[+A] (
     authenticated[M](Ok)(block)
   }
 
-  private def validate[R: Reads](json: JsValue): ApplicationResult[R] = {
+  protected def validate[R: Reads](json: JsValue): ApplicationResult[R] = {
     json.validate[R].fold(
       invalid => {
         val errorList = invalid.map { case (path, errors) =>
@@ -328,7 +328,7 @@ abstract class AbstractJsonController[+A] (
     )
   }
 
-  private def renderResult[M](
+  protected def renderResult[M](
       successStatus: Status,
       response: FutureApplicationResult[M])(
       implicit lang: Lang,
@@ -358,19 +358,19 @@ abstract class AbstractJsonController[+A] (
     }
   }
 
-  private def renderSuccessfulResult[M](successStatus: Status, model: M)(implicit tjs: Writes[M]) = {
+  protected def renderSuccessfulResult[M](successStatus: Status, model: M)(implicit tjs: Writes[M]) = {
     val json = Json.toJson(model)
     successStatus.apply(json)
   }
 
-  private def logServerErrors(errorId: ErrorId, errors: ApplicationErrors): Unit = {
+  protected def logServerErrors(errorId: ErrorId, errors: ApplicationErrors): Unit = {
     errors
         .collect { case e: ServerError => e }
         .foreach(onServerError)
   }
 
   // detect response status based on the first error
-  private def getResultStatus(errors: ApplicationErrors): Results.Status = errors.head match {
+  protected def getResultStatus(errors: ApplicationErrors): Results.Status = errors.head match {
     case _: InputValidationError => Results.BadRequest
     case _: ConflictError => Results.Conflict
     case _: NotFoundError => Results.NotFound
@@ -378,7 +378,7 @@ abstract class AbstractJsonController[+A] (
     case _: ServerError => Results.InternalServerError
   }
 
-  private def renderErrors(errors: ApplicationErrors)(implicit lang: Lang): JsValue = {
+  protected def renderErrors(errors: ApplicationErrors)(implicit lang: Lang): JsValue = {
     val jsonErrorList = errors.toList
         .flatMap { error =>
           error.toPublicErrorList(components.i18nService)
