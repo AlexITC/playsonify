@@ -68,6 +68,22 @@ abstract class AbstractJsonController[+A] (
    */
   protected val EmptyJsonParser = parse.ignore(Json.toJson(JsObject.empty))
 
+  def publicInput[R: Reads](
+      block: Context with HasModel[R] => FutureApplicationResult[Result]): Action[JsValue] = Action.async(parse.json) { request =>
+
+    val result = for {
+      input <- validate[R](request.body).toFutureOr
+      lang = messagesApi.preferred(request).lang
+      context = new Context(request, lang) with HasModel[R] {
+        override def model: R = input
+      }
+      output <- block(context).toFutureOr
+    } yield output
+
+    val lang = messagesApi.preferred(request).lang
+    renderResult(result.toFuture)(lang)
+  }
+
   /**
    * Execute an asynchronous action that receives the model [[R]]
    * and returns the model [[M]] on success.
@@ -134,6 +150,13 @@ abstract class AbstractJsonController[+A] (
     publicInput[R, M](Ok)(block)
   }
 
+  def public(block: Context => FutureApplicationResult[Result]): Action[JsValue] = Action.async(EmptyJsonParser) { request =>
+    val lang = messagesApi.preferred(request).lang
+    val context = new Context(request, lang)
+    val result = block(context)
+    renderResult(result)(lang)
+  }
+
   /**
    * Execute an asynchronous action that doesn't need an input model
    * and returns the model [[M]] on success.
@@ -182,6 +205,25 @@ abstract class AbstractJsonController[+A] (
       implicit tjs: Writes[M]): Action[JsValue] = {
 
     public[M](Ok)(block)
+  }
+
+  def authenticatedInput[R: Reads](
+      block: Context with Authenticated with HasModel[R] => FutureApplicationResult[Result]): Action[JsValue] = Action.async(parse.json) { request =>
+
+    val lang = messagesApi.preferred(request).lang
+    val result = for {
+      input <- validate[R](request.body).toFutureOr
+      authValue <- components.authenticatorService.authenticate(request).toFutureOr
+      lang = messagesApi.preferred(request).lang
+      context = new Context(request, lang) with HasModel[R] with Authenticated {
+        override def model: R = input
+
+        override def auth: A = authValue
+      }
+      output <- block(context).toFutureOr
+    } yield output
+
+    renderResult(result.toFuture)(lang)
   }
 
   /**
@@ -250,6 +292,22 @@ abstract class AbstractJsonController[+A] (
       implicit tjs: Writes[M]): Action[JsValue] = {
 
     authenticatedInput[R, M](Ok)(block)
+  }
+
+  def authenticated(
+      block: Context with Authenticated => FutureApplicationResult[Result]): Action[JsValue] = Action.async(EmptyJsonParser) { request =>
+
+    val lang = messagesApi.preferred(request).lang
+    val result = for {
+      authValue <- components.authenticatorService.authenticate(request).toFutureOr
+      lang = messagesApi.preferred(request).lang
+      context = new Context(request, lang) with Authenticated {
+        override def auth: A = authValue
+      }
+      output <- block(context).toFutureOr
+    } yield output
+
+    renderResult(result.toFuture)(lang)
   }
 
   /**
@@ -334,9 +392,20 @@ abstract class AbstractJsonController[+A] (
       implicit lang: Lang,
       tjs: Writes[M]): Future[Result] = {
 
+    val partial = response
+        .toFutureOr
+        .map { value => renderSuccessfulResult(successStatus, value)(tjs) }
+        .toFuture
+
+    renderResult(partial)
+  }
+
+  protected def renderResult(
+      response: FutureApplicationResult[Result])(
+      implicit lang: Lang): Future[Result] = {
+
     response.map {
-      case Good(value) =>
-        renderSuccessfulResult(successStatus, value)(tjs)
+      case Good(result) => result
 
       case Bad(errors) =>
         val errorId = ErrorId.create
@@ -358,7 +427,7 @@ abstract class AbstractJsonController[+A] (
     }
   }
 
-  protected def renderSuccessfulResult[M](successStatus: Status, model: M)(implicit tjs: Writes[M]) = {
+  protected def renderSuccessfulResult[M](successStatus: Status, model: M)(implicit tjs: Writes[M]): Result = {
     val json = Json.toJson(model)
     successStatus.apply(json)
   }
