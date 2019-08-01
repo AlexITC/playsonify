@@ -8,8 +8,8 @@ import scala.concurrent.Future
 
 package object core {
 
-  type ApplicationErrors = Every[ApplicationError]
-  type ApplicationResult[+A] = A Or ApplicationErrors
-  type FutureApplicationResult[+A] = Future[ApplicationResult[A]]
-  type FuturePaginatedResult[+A] = FutureApplicationResult[PaginatedResult[A]]
+  type ApplicationErrors[E] = Every[E]
+  type ApplicationResult[E, +A] = A Or ApplicationErrors[E]
+  type FutureApplicationResult[E, +A] = Future[ApplicationResult[E, A]]
+  type FuturePaginatedResult[E, +A] = FutureApplicationResult[E, PaginatedResult[A]]
 }

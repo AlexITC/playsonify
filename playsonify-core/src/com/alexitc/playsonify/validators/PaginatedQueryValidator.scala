@@ -8,16 +8,14 @@ class PaginatedQueryValidator {
 
   import PaginatedQueryValidator._
 
-  def validate(query: PaginatedQuery, maxLimit: Int): ApplicationResult[PaginatedQuery] = {
-    Accumulation.withGood(
-      validateOffset(query.offset),
-      validateLimit(query.limit, maxLimit)) {
+  def validate(query: PaginatedQuery, maxLimit: Int): ApplicationResult[PaginatedQueryError, PaginatedQuery] = {
+    Accumulation.withGood(validateOffset(query.offset), validateLimit(query.limit, maxLimit)) {
 
       PaginatedQuery.apply
     }
   }
 
-  private def validateOffset(offset: Offset): ApplicationResult[Offset] = {
+  private def validateOffset(offset: Offset): ApplicationResult[PaginatedQueryError, Offset] = {
     if (offset.int >= MinOffset) {
       Good(offset)
     } else {
@@ -25,7 +23,7 @@ class PaginatedQueryValidator {
     }
   }
 
-  private def validateLimit(limit: Limit, maxLimit: Int): ApplicationResult[Limit] = {
+  private def validateLimit(limit: Limit, maxLimit: Int): ApplicationResult[PaginatedQueryError, Limit] = {
     if (MinLimit to maxLimit contains limit.int) {
       Good(limit)
     } else {
