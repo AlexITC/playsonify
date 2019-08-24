@@ -27,7 +27,7 @@ An opinionated micro-framework that helps you to build JSON APIs in a practical 
   - [Familiarize with scalactic Or and Every](#familiarize-with-scalactic-or-and-every)
   - [Familiarize with our type aliases](#familiarize-with-our-type-aliases)
   - [Create your application specific errors](#create-your-application-specific-errors)
-  - [Define your authenticataion mechanism](#define-your-authenticataion-mechanism)
+  - [Define your authentication mechanism](#define-your-authentication-mechanism)
   - [Define your JsonControllerComponents](#define-your-jsoncontrollercomponents)
   - [Define your AbstractJsonController](#define-your-abstractjsoncontroller)
   - [Create your controllers](#create-your-controllers)
@@ -356,7 +356,7 @@ Here you have a real example: [errors package](https://github.com/AlexITC/crypto
 Notice that the you have the preferred user language to render errors in that language when possible.
 
 
-### Define your authenticataion mechanism
+### Define your authentication mechanism
 You are required to define your own [AbstractAuthenticatorService](playsonify-play/src/com/alexitc/playsonify/play/AbstractAuthenticatorService.scala), this service have the responsibility to decide which requests are authenticated and which ones are not, you first task is to define a model to represent an authenticated request, it is common to take the user or the user id for this, this model will be available in your controllers while dealing with authenticated requests.
 
 For example, suppose that we'll use an `Int` to represent the id of the user performing the request, at first, define the errors that represents that a request wasn't authenticated, like this:
