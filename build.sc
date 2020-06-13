@@ -81,10 +81,10 @@ object `playsonify-sql` extends PlaysonifyModule {
 }
 
 trait PlaysonifyModule extends ScalaModule with PublishModule {
-  def scalaVersion = "2.12.7"
-  def publishVersion = "2.0.1"
+  def scalaVersion = "2.12.10"
+  def publishVersion = "2.2.0"
 
-  val playframework = ivy"com.typesafe.play::play:2.6.20"
+  val playframework = ivy"com.typesafe.play::play:2.8.0"
   val scalactic = ivy"org.scalactic::scalactic:3.0.5"
   val akkaStreams = ivy"com.typesafe.akka::akka-stream:2.5.12"
   val akkaHttp = ivy"com.typesafe.akka::akka-http:10.1.5"
