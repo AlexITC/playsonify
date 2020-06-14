@@ -92,7 +92,7 @@ trait PlaysonifyModule extends ScalaModule with PublishModule {
   val akkaHttpPlayJson = ivy"de.heikoseeberger::akka-http-play-json:1.22.0"
   val playJson = ivy"com.typesafe.play::play-json:2.6.10"
   val scalatest = ivy"org.scalatest::scalatest:3.0.5"
-  val scalatestPlusPlay = ivy"org.scalatestplus.play::scalatestplus-play:3.1.2"
+  val scalatestPlusPlay = ivy"org.scalatestplus.play::scalatestplus-play:5.1.0"
   val mockito = ivy"org.mockito:mockito-core:2.15.0"
 
   def pomSettings = PomSettings(
