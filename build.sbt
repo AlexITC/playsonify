@@ -6,7 +6,7 @@ inThisBuild(
   List(
     name := "playsonify",
     description := "An opinionated library to help you build JSON APIs in a practical way using Play Framework ",
-    organization := "com.alexit",
+    organization := "com.alexitc",
     homepage := Some(
       url("https://github.com/AlexITC/playsonify")
     ),
