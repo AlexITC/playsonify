@@ -15,7 +15,7 @@ import play.api.test._
 
 class AbstractJsonControllerSpec extends PlaySpec with ScalaFutures {
 
-  private val guiceApplicationBuilder: GuiceApplicationBuilder = GuiceApplicationBuilder().in(Test)
+  private val guiceApplicationBuilder: GuiceApplicationBuilder = GuiceApplicationBuilder().in(Mode.Test)
   private val application = guiceApplicationBuilder.build()
   private implicit val materializer = application.materializer
 
