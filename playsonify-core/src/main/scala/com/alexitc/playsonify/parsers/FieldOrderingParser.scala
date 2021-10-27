@@ -22,12 +22,12 @@ trait FieldOrderingParser[+A] {
    */
   def from(orderByQuery: OrderingQuery): ApplicationResult[FieldOrdering[A]] = {
     Option(orderByQuery.string)
-      .filter(_.nonEmpty)
-      .map { string => from(string.split(":")) }
-      .getOrElse {
-        val ordering = FieldOrdering(defaultField, defaultOrderingCondition)
-        Good(ordering)
-      }
+        .filter(_.nonEmpty)
+        .map { string => from(string.split(":")) }
+        .getOrElse {
+          val ordering = FieldOrdering(defaultField, defaultOrderingCondition)
+          Good(ordering)
+        }
   }
 
   private def from(parts: Seq[String]): FieldOrdering[A] Or ApplicationErrors = parts match {
@@ -37,9 +37,9 @@ trait FieldOrderingParser[+A] {
       } yield FieldOrdering(field, defaultOrderingCondition)
 
     case Seq(unsafeField, unsafeOrderingCondition) =>
-      Accumulation.withGood(getFieldResult(unsafeField), getOrderingConditionResult(unsafeOrderingCondition)) {
-        FieldOrdering.apply
-      }
+      Accumulation.withGood(
+        getFieldResult(unsafeField),
+        getOrderingConditionResult(unsafeOrderingCondition)) { FieldOrdering.apply }
 
     case _ =>
       Bad(OrderingError.InvalidFormat).accumulating
@@ -55,8 +55,7 @@ trait FieldOrderingParser[+A] {
     Or.from(maybe, One(OrderingError.InvalidCondition))
   }
 
-  protected def parseOrderingCondition(unsafeOrderingCondition: String): Option[OrderingCondition] =
-    unsafeOrderingCondition match {
+  protected def parseOrderingCondition(unsafeOrderingCondition: String): Option[OrderingCondition] = unsafeOrderingCondition match {
       case "asc" => Some(OrderingCondition.AscendingOrder)
       case "desc" => Some(OrderingCondition.DescendingOrder)
       case _ => None

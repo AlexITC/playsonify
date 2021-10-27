@@ -36,7 +36,6 @@ class FieldOrderingSQLInterpreterSpec extends WordSpec {
 
 object FieldOrderingSQLInterpreterSpec {
   sealed trait PersonField
-
   object PersonField {
     final case object Id extends PersonField
     final case object Country extends PersonField

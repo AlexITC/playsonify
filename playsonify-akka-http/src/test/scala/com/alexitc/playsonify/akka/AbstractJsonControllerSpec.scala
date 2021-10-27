@@ -9,7 +9,7 @@ import org.scalatest.{Matchers, WordSpec}
 import play.api.libs.json.JsValue
 
 class AbstractJsonControllerSpec
-    extends WordSpec
+  extends WordSpec
     with Matchers
     with ScalaFutures
     with ScalatestRouteTest

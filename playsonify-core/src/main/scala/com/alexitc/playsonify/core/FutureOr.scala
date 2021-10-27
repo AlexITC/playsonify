@@ -55,16 +55,16 @@ object FutureOr {
 
         val future = futureList.map { resultList =>
           val errorsMaybe = resultList
-            .flatMap(_.swap.toOption)
-            .reduceLeftOption(_ ++ _)
-            .map(_.distinct)
+              .flatMap(_.swap.toOption)
+              .reduceLeftOption(_ ++ _)
+              .map(_.distinct)
 
           errorsMaybe
-            .map(Bad(_))
-            .getOrElse {
-              val valueList = resultList.flatMap(_.toOption)
-              Good(valueList)
-            }
+              .map(Bad(_))
+              .getOrElse {
+                val valueList = resultList.flatMap(_.toOption)
+                Good(valueList)
+              }
         }
 
         new FutureOr(future)

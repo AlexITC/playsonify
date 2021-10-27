@@ -7,10 +7,10 @@ import play.api.mvc.MessagesControllerComponents
 
 import scala.concurrent.ExecutionContext
 
-class CustomControllerComponents @Inject() (
+class CustomControllerComponents @Inject()(
     override val messagesControllerComponents: MessagesControllerComponents,
     override val i18nService: I18nPlayService,
     override val executionContext: ExecutionContext,
     override val publicErrorRenderer: PublicErrorRenderer,
-    override val authenticatorService: CustomAuthenticator
-) extends JsonControllerComponents[CustomUser]
+    override val authenticatorService: CustomAuthenticator)
+    extends JsonControllerComponents[CustomUser]

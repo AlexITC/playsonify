@@ -8,7 +8,6 @@ sealed trait CustomError
 object CustomError {
 
   case object InputError extends CustomError with InputValidationError {
-
     override def toPublicErrorList[L](i18nService: I18nService[L])(implicit lang: L): List[PublicError] = {
       val publicError = FieldValidationError("field", "just an error")
       List(publicError)
@@ -16,7 +15,6 @@ object CustomError {
   }
 
   case object DuplicateError extends CustomError with ConflictError {
-
     override def toPublicErrorList[L](i18nService: I18nService[L])(implicit lang: L): List[PublicError] = {
       val publicError = FieldValidationError("anotherField", "just another error")
       List(publicError)
@@ -24,7 +22,6 @@ object CustomError {
   }
 
   case object FailedAuthError extends CustomError with AuthenticationError {
-
     override def toPublicErrorList[L](i18nService: I18nService[L])(implicit lang: L): List[PublicError] = {
       val publicError = HeaderValidationError("Authorization", "Invalid auth")
       List(publicError)

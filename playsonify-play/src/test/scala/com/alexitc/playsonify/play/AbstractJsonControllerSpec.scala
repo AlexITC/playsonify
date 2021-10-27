@@ -1,10 +1,6 @@
 package com.alexitc.playsonify.play
 
-import com.alexitc.playsonify.play.controllers.{
-  AuthenticatedNoInputController,
-  PublicController,
-  PublicWithInputController
-}
+import com.alexitc.playsonify.play.controllers.{AuthenticatedNoInputController, PublicController, PublicWithInputController}
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.play.PlaySpec
 import play.api.Mode
@@ -88,8 +84,8 @@ class AbstractJsonControllerSpec extends PlaySpec with ScalaFutures {
           | }
         """.stripMargin
       val request = FakeRequest("POST", "/")
-        .withJsonBody(Json.parse(body))
-        .withHeaders(CONTENT_TYPE -> "application/json")
+          .withJsonBody(Json.parse(body))
+          .withHeaders(CONTENT_TYPE -> "application/json")
       val result = call(controller.getModel(), request)
 
       status(result) mustEqual OK
@@ -107,8 +103,8 @@ class AbstractJsonControllerSpec extends PlaySpec with ScalaFutures {
           | }
         """.stripMargin
       val request = FakeRequest("POST", "/")
-        .withBody(body)
-        .withHeaders(CONTENT_TYPE -> "application/json")
+          .withBody(body)
+          .withHeaders(CONTENT_TYPE -> "application/json")
       val result = call(controller.getModel(), request)
 
       status(result) mustEqual BAD_REQUEST
@@ -127,8 +123,8 @@ class AbstractJsonControllerSpec extends PlaySpec with ScalaFutures {
           | }
         """.stripMargin
       val request = FakeRequest("POST", "/")
-        .withBody(body)
-        .withHeaders(CONTENT_TYPE -> "application/json")
+          .withBody(body)
+          .withHeaders(CONTENT_TYPE -> "application/json")
       val result = call(controller.getModel(), request)
 
       status(result) mustEqual BAD_REQUEST
@@ -151,8 +147,8 @@ class AbstractJsonControllerSpec extends PlaySpec with ScalaFutures {
           | }
         """.stripMargin
       val request = FakeRequest("POST", "/")
-        .withBody(body)
-        .withHeaders(CONTENT_TYPE -> "application/json")
+          .withBody(body)
+          .withHeaders(CONTENT_TYPE -> "application/json")
       val result = call(controller.getModel(), request)
 
       status(result) mustEqual BAD_REQUEST
@@ -169,11 +165,10 @@ class AbstractJsonControllerSpec extends PlaySpec with ScalaFutures {
 
     "reject empty body" in {
       val request = FakeRequest("POST", "/")
-        .withHeaders(CONTENT_TYPE -> "application/json")
+          .withHeaders(CONTENT_TYPE -> "application/json")
       val result = call(controller.getModel(), request)
 
       status(result) mustEqual BAD_REQUEST
-
       /**
        * We can't match the response body unless we implement a custom error handler which
        * returns the error as JSON instead of HTML.
@@ -189,8 +184,8 @@ class AbstractJsonControllerSpec extends PlaySpec with ScalaFutures {
           | }
         """.stripMargin
       val request = FakeRequest("POST", "/")
-        .withJsonBody(Json.parse(body))
-        .withHeaders(CONTENT_TYPE -> "application/json")
+          .withJsonBody(Json.parse(body))
+          .withHeaders(CONTENT_TYPE -> "application/json")
       val result = call(controller.getCustomStatus(), request)
 
       status(result) mustEqual CREATED
@@ -205,8 +200,8 @@ class AbstractJsonControllerSpec extends PlaySpec with ScalaFutures {
           | }
         """.stripMargin
       val request = FakeRequest("POST", "/")
-        .withJsonBody(Json.parse(body))
-        .withHeaders(CONTENT_TYPE -> "application/json")
+          .withJsonBody(Json.parse(body))
+          .withHeaders(CONTENT_TYPE -> "application/json")
       val result = call(controller.getErrors(), request)
       status(result) mustEqual BAD_REQUEST
 
@@ -235,8 +230,8 @@ class AbstractJsonControllerSpec extends PlaySpec with ScalaFutures {
           | }
         """.stripMargin
       val request = FakeRequest("POST", "/")
-        .withJsonBody(Json.parse(body))
-        .withHeaders(CONTENT_TYPE -> "application/json")
+          .withJsonBody(Json.parse(body))
+          .withHeaders(CONTENT_TYPE -> "application/json")
       val exception = new RuntimeException("nothing")
       val result = call(controller.getException(exception), request)
       status(result) mustEqual INTERNAL_SERVER_ERROR

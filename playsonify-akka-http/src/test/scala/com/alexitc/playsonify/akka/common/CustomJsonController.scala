@@ -12,7 +12,8 @@ import scala.concurrent.Future
 class CustomJsonController extends AbstractJsonController(new CustomJsonController.CustomJsonComponents) {
 
   override protected def onServerError(error: ServerError, id: ErrorId): Unit = {
-    error.cause
+    error
+      .cause
       .orElse {
         println(s"Server error: $error, id = ${error.id}")
         None
@@ -30,9 +31,9 @@ object CustomJsonController {
 
     override def i18nService: SingleLangService = SingleLangService.Default
 
-    override def publicErrorRenderer: PublicErrorRenderer = new PublicErrorRenderer
+    override def publicErrorRenderer = new PublicErrorRenderer
 
-    override def authenticatorService: AbstractAuthenticatorService[CustomUser] = new CustomAuthenticator
+    override def authenticatorService = new CustomAuthenticator
   }
 
   class CustomAuthenticator extends AbstractAuthenticatorService[CustomUser] {
@@ -40,9 +41,9 @@ object CustomJsonController {
     override def authenticate(request: HttpRequest): FutureApplicationResult[CustomUser] = {
 
       val header = request
-        .header[Authorization]
-        .map(_.value())
-        .map(CustomUser.apply)
+          .header[Authorization]
+          .map(_.value())
+          .map(CustomUser.apply)
 
       val result = Or.from(header, One(CustomError.FailedAuthError))
       Future.successful(result)

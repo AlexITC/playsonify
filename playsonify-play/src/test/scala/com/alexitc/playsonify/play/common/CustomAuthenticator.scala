@@ -12,9 +12,10 @@ import scala.concurrent.Future
 class CustomAuthenticator extends AbstractAuthenticatorService[CustomUser] {
 
   override def authenticate(request: Request[JsValue]): FutureApplicationResult[CustomUser] = {
-    val header = request.headers
-      .get(AUTHORIZATION)
-      .map(CustomUser.apply)
+    val header = request
+        .headers
+        .get(AUTHORIZATION)
+        .map(CustomUser.apply)
 
     val result = Or.from(header, One(CustomError.FailedAuthError))
     Future.successful(result)
