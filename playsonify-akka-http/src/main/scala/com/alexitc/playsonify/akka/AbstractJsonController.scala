@@ -26,13 +26,9 @@ abstract class AbstractJsonController[+A](
 
   object Context {
 
-    trait HasModel[+T] {
-      def model: T
-    }
+    trait HasModel[+T] { def model: T }
 
-    trait Authenticated {
-      def auth: A
-    }
+    trait Authenticated { def auth: A }
   }
 
   import Context._
@@ -53,44 +49,43 @@ abstract class AbstractJsonController[+A](
     }
 
     RejectionHandler
-      .newBuilder()
-      .handle { case ValidationRejection(_, Some(e: PlayJsonError)) =>
-        val errorList = e
-          .error
-          .errors
-          .map { case (path, errors) =>
-            val x = errors
-              .flatMap(_.messages)
-              .map(MessageKey.apply)
-              .toList
+        .newBuilder()
+        .handle { case ValidationRejection(_, Some(e: PlayJsonError)) =>
+          val errorList = e
+            .error
+            .errors
+            .map { case (path, errors) =>
+              val x = errors
+                  .flatMap(_.messages)
+                  .map(MessageKey.apply)
+                  .toList
+              JsonFieldValidationError(path, x)
+            }
 
-            JsonFieldValidationError(path, x)
-          }
-
-        // assume that errorList is non empty
-        val badResult = Bad(Every(errorList.head, errorList.drop(1): _*))
-        val result: FutureApplicationResult[String] = Future.successful(badResult)
-        renderResult(StatusCodes.BadRequest, result)
-      }
-      .handle { case MalformedRequestContentRejection(_, _: JsonParseException) | RequestEntityExpectedRejection =>
-        val error = MalformedJsonError
-        val badResult = Bad(error).accumulating
-        val result: FutureApplicationResult[String] = Future.successful(badResult)
-        renderResult(StatusCodes.BadRequest, result)
-      }.handle { case MethodRejection(_) =>
-      notFoundHandler
-    }
-      .handleNotFound {
-        notFoundHandler
-      }
-      .result()
+          // assume that errorList is non empty
+          val badResult = Bad(Every(errorList.head, errorList.drop(1): _*))
+          val result: FutureApplicationResult[String] = Future.successful(badResult)
+          renderResult(StatusCodes.BadRequest, result)
+        }
+        .handle { case MalformedRequestContentRejection(_, _: JsonParseException) | RequestEntityExpectedRejection =>
+          val error = MalformedJsonError
+          val badResult = Bad(error).accumulating
+          val result: FutureApplicationResult[String] = Future.successful(badResult)
+          renderResult(StatusCodes.BadRequest, result)
+        }.handle { case MethodRejection(_) =>
+          notFoundHandler
+        }
+        .handleNotFound {
+          notFoundHandler
+        }
+        .result()
   }
 
   def publicInput[I, O](successCode: StatusCode)(
-    f: Context with HasModel[I] => FutureApplicationResult[O])(
-    implicit um: FromRequestUnmarshaller[I],
-    rm: ToResponseMarshaller[O],
-    mat: Materializer): Route = {
+      f: Context with HasModel[I] => FutureApplicationResult[O])(
+      implicit um: FromRequestUnmarshaller[I],
+      rm: ToResponseMarshaller[O],
+      mat: Materializer): Route = {
 
     handleRejections(rejectionHandler) {
       val directive = entity(as(requestContextWithModelUnmarshaller))
@@ -106,7 +101,7 @@ abstract class AbstractJsonController[+A](
       mat: Materializer): Route = {
 
     publicInput[I, O](StatusCodes.OK)(f)
-}
+  }
 
   def public[O](
       successCode: StatusCode)(
@@ -145,11 +140,11 @@ abstract class AbstractJsonController[+A](
             authCtx = new Context(ctx.request) with Authenticated {
 
               override val auth: A = authObj
-          }
-          output <- f(authCtx).toFutureOr
-        } yield output
+            }
+            output <- f(authCtx).toFutureOr
+          } yield output
 
-        renderResult(successCode, result.toFuture)
+          renderResult(successCode, result.toFuture)
       }
     }
   }
@@ -164,23 +159,23 @@ abstract class AbstractJsonController[+A](
   }
 
   def authenticatedInput[I, O](successCode: StatusCode)(
-    f: Context with Authenticated with HasModel[I] => FutureApplicationResult[O])(
-    implicit um: FromRequestUnmarshaller[I],
-    rm: ToResponseMarshaller[O],
-    mat: Materializer): Route = {
+      f: Context with Authenticated with HasModel[I] => FutureApplicationResult[O])(
+      implicit um: FromRequestUnmarshaller[I],
+      rm: ToResponseMarshaller[O],
+      mat: Materializer): Route = {
 
     handleRejections(rejectionHandler) {
       // TODO: unmarshall request after authentication
       val directive = entity(as(requestContextWithModelUnmarshaller))
-        directive { ctx =>
-          extractExecutionContext { implicit ec =>
-            val result = for {
-              authObj <- components.authenticatorService.authenticate(ctx.request).toFutureOr
-              authCtx = new Context(ctx.request) with Authenticated with HasModel[I] {
+      directive { ctx =>
+        extractExecutionContext { implicit ec =>
+          val result = for {
+            authObj <- components.authenticatorService.authenticate(ctx.request).toFutureOr
+            authCtx = new Context(ctx.request) with Authenticated with HasModel[I] {
 
-                override def auth: A = authObj
+              override def auth: A = authObj
 
-                override def model: I = ctx.model
+              override def model: I = ctx.model
             }
             output <- f(authCtx).toFutureOr
           } yield output
@@ -202,15 +197,15 @@ abstract class AbstractJsonController[+A](
 
   private def logServerErrors(errorId: ErrorId, errors: ApplicationErrors): Unit = {
     errors
-      .collect { case e: ServerError => e }
-      .foreach { onServerError(_, errorId) }
+        .collect { case e: ServerError => e }
+        .foreach { onServerError(_, errorId) }
   }
 
   private def renderResult[T](
       successCode: StatusCode,
       f: FutureApplicationResult[T])(
-    implicit rm: ToResponseMarshaller[T]
-  ): Route = {
+      implicit rm: ToResponseMarshaller[T]): Route = {
+
     onComplete(f) { r =>
       val (resultStatus, response): (StatusCode, ToResponseMarshallable) = r match {
         case Success(Good(x)) => (successCode, ToResponseMarshallable.apply(x))
@@ -226,16 +221,15 @@ abstract class AbstractJsonController[+A](
 
           logServerErrors(errorId, errors)
           (getResultStatus(errors), renderErrors(errors))
+      }
+      mapResponse(_.copy(status = resultStatus)) {
+        complete(response)
+      }
     }
-
-    mapResponse(_.copy(status = resultStatus)) {
-      complete(response)
-    }
-  }
   }
 
   // detect response status based on the first error
-  private def getResultStatus(errors: ApplicationErrors) = errors.head match {
+  private def getResultStatus(errors: ApplicationErrors): StatusCode = errors.head match {
     case _: InputValidationError => StatusCodes.BadRequest
     case _: ConflictError => StatusCodes.Conflict
     case _: NotFoundError => StatusCodes.NotFound
@@ -245,10 +239,10 @@ abstract class AbstractJsonController[+A](
 
   private def renderErrors(errors: ApplicationErrors): JsValue = {
     val jsonErrorList = errors.toList
-      .flatMap { error =>
-        error.toPublicErrorList(components.i18nService)
-      }
-      .map(components.publicErrorRenderer.renderPublicError)
+        .flatMap { error =>
+          error.toPublicErrorList(components.i18nService)
+        }
+        .map(components.publicErrorRenderer.renderPublicError)
 
     Json.obj("errors" -> jsonErrorList)
   }
@@ -259,17 +253,17 @@ abstract class AbstractJsonController[+A](
 
     Unmarshaller.apply[HttpRequest, Context with HasModel[T]] { implicit ec => request =>
       um.apply(request)(ec, mat)
-        .map { x =>
-          new Context(request) with HasModel[T] {
-            override def model: T = x
+          .map { x =>
+            new Context(request) with HasModel[T] {
+              override def model: T = x
+            }
           }
-        }
     }
   }
 
   private def requestContextUnmarshaller(implicit mat: Materializer) = {
     Unmarshaller.strict[HttpRequest, Context] { request =>
-        new Context(request)
+      new Context(request)
     }
   }
 }
