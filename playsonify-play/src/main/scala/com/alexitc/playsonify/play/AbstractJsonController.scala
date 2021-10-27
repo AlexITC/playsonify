@@ -33,7 +33,7 @@ import scala.util.control.NonFatal
  * @param components the components used by the logic of this JsonController.
  * @tparam A the value type for an authenticated request, like User or UserId.
  */
-abstract class AbstractJsonController[+A](
+abstract class AbstractJsonController[+A] (
     components: JsonControllerComponents[A])
     extends MessagesBaseController {
 
@@ -41,13 +41,9 @@ abstract class AbstractJsonController[+A](
 
   object Context {
 
-    trait HasModel[+T] {
-      def model: T
-    }
+    trait HasModel[+T] { def model: T }
 
-    trait Authenticated {
-      def auth: A
-    }
+    trait Authenticated { def auth: A }
   }
 
   import Context._
@@ -93,15 +89,15 @@ abstract class AbstractJsonController[+A](
    * the HTTP status Created (201) will be returned.
    *
    * @param successStatus the http status for a successful response
-   * @param block         the block to execute
-   * @param tjs           the serializer for [[M]]
+   * @param block the block to execute
+   * @param tjs the serializer for [[M]]
    * @tparam R the input model type
    * @tparam M the output model type
    */
   def publicInput[R: Reads, M](
-                                successStatus: Status)(
-                                block: Context with HasModel[R] => FutureApplicationResult[M])(
-                                implicit tjs: Writes[M]): Action[JsValue] = Action.async(parse.json) { request =>
+      successStatus: Status)(
+      block: Context with HasModel[R] => FutureApplicationResult[M])(
+      implicit tjs: Writes[M]): Action[JsValue] = Action.async(parse.json) { request =>
 
     val result = for {
       input <- validate[R](request.body).toFutureOr
@@ -132,8 +128,8 @@ abstract class AbstractJsonController[+A](
    * the HTTP status Ok (200) will be returned.
    */
   def publicInput[R: Reads, M](
-                                block: Context with HasModel[R] => FutureApplicationResult[M])(
-                                implicit tjs: Writes[M]) = {
+      block: Context with HasModel[R] => FutureApplicationResult[M])(
+      implicit tjs: Writes[M]) = {
 
     publicInput[R, M](Ok)(block)
   }
@@ -154,13 +150,14 @@ abstract class AbstractJsonController[+A](
    * In case of a successful result, the HTTP status Ok (200) will be returned.
    *
    * @param successStatus the http status for a successful response
-   * @param block         the block to execute
-   * @param tjs           the serializer for [[M]]
+   * @param block the block to execute
+   * @param tjs the serializer for [[M]]
    * @tparam M the output model type
    */
-  def public[M](successStatus: Status)(
-    block: Context => FutureApplicationResult[M])(
-                 implicit tjs: Writes[M]) = Action.async(EmptyJsonParser) { request =>
+  def public[M](
+      successStatus: Status)(
+      block: Context => FutureApplicationResult[M])(
+      implicit tjs: Writes[M]) = Action.async(EmptyJsonParser) { request =>
 
     val lang = messagesApi.preferred(request).lang
     val context = new Context(request, lang)
@@ -181,8 +178,8 @@ abstract class AbstractJsonController[+A](
    * In case of a successful result, the HTTP status Created (201) will be returned.
    */
   def public[M](
-                 block: Context => FutureApplicationResult[M])(
-                 implicit tjs: Writes[M]) = {
+      block: Context => FutureApplicationResult[M])(
+      implicit tjs: Writes[M]): Action[JsValue] = {
 
     public[M](Ok)(block)
   }
@@ -206,15 +203,15 @@ abstract class AbstractJsonController[+A](
    * Where there is an implicit deserializer for the SetUserPreferencesModel class.
    *
    * @param successStatus the http status for a successful response
-   * @param block         the block to execute
-   * @param tjs           the serializer for [[M]]
+   * @param block the block to execute
+   * @param tjs the serializer for [[M]]
    * @tparam R the input model type
    * @tparam M the output model type
    */
   def authenticatedInput[R: Reads, M](
-                                       successStatus: Status)(
-                                       block: Context with Authenticated with HasModel[R] => FutureApplicationResult[M])(
-                                       implicit tjs: Writes[M]) = Action.async(parse.json) { request =>
+      successStatus: Status)(
+      block: Context with Authenticated with HasModel[R] => FutureApplicationResult[M])(
+      implicit tjs: Writes[M]) = Action.async(parse.json) { request =>
 
     val lang = messagesApi.preferred(request).lang
     val result = for {
@@ -249,8 +246,8 @@ abstract class AbstractJsonController[+A](
    * Where there is an implicit deserializer for the SetUserPreferencesModel class.
    */
   def authenticatedInput[R: Reads, M](
-                                       block: Context with Authenticated with HasModel[R] => FutureApplicationResult[M])(
-                                       implicit tjs: Writes[M]) = {
+      block: Context with Authenticated with HasModel[R] => FutureApplicationResult[M])(
+      implicit tjs: Writes[M]): Action[JsValue] = {
 
     authenticatedInput[R, M](Ok)(block)
   }
@@ -271,13 +268,14 @@ abstract class AbstractJsonController[+A](
    * }}}
    *
    * @param successStatus the http status for a successful response
-   * @param block         the block to execute
-   * @param tjs           the serializer for [[M]]
+   * @param block the block to execute
+   * @param tjs the serializer for [[M]]
    * @tparam M the output model type
    */
-  def authenticated[M](successStatus: Status)(
-    block: Context with Authenticated => FutureApplicationResult[M])(
-                        implicit tjs: Writes[M]) = Action.async(EmptyJsonParser) { request =>
+  def authenticated[M](
+      successStatus: Status)(
+      block: Context with Authenticated => FutureApplicationResult[M])(
+      implicit tjs: Writes[M]): Action[JsValue] = Action.async(EmptyJsonParser) { request =>
 
     val lang = messagesApi.preferred(request).lang
     val result = for {
@@ -305,22 +303,22 @@ abstract class AbstractJsonController[+A](
    * }}}
    */
   def authenticated[M](
-                        block: Context with Authenticated => FutureApplicationResult[M])(
-                        implicit tjs: Writes[M]) = {
+      block: Context with Authenticated => FutureApplicationResult[M])(
+      implicit tjs: Writes[M]) = {
 
     authenticated[M](Ok)(block)
   }
 
-  private def validate[R: Reads](json: JsValue) = {
+  private def validate[R: Reads](json: JsValue): ApplicationResult[R] = {
     json.validate[R].fold(
       invalid => {
         val errorList = invalid.map { case (path, errors) =>
           JsonFieldValidationError(
             path,
             errors
-              .flatMap(_.messages)
-              .map(MessageKey.apply)
-              .toList)
+                .flatMap(_.messages)
+                .map(MessageKey.apply)
+                .toList)
         }
 
         // assume that errorList is non empty
@@ -347,7 +345,7 @@ abstract class AbstractJsonController[+A](
 
         logServerErrors(errorId, errors)
         status(json)
-      }.recover {
+    }.recover {
       case NonFatal(ex) =>
         val errorId = ErrorId.create
         val error = WrappedExceptionError(errorId, ex)
@@ -357,7 +355,7 @@ abstract class AbstractJsonController[+A](
 
         logServerErrors(errorId, errors)
         status(json)
-      }
+    }
   }
 
   private def renderSuccessfulResult[M](successStatus: Status, model: M)(implicit tjs: Writes[M]) = {
@@ -367,8 +365,8 @@ abstract class AbstractJsonController[+A](
 
   private def logServerErrors(errorId: ErrorId, errors: ApplicationErrors): Unit = {
     errors
-      .collect { case e: ServerError => e }
-      .foreach(onServerError)
+        .collect { case e: ServerError => e }
+        .foreach(onServerError)
   }
 
   // detect response status based on the first error
@@ -382,10 +380,10 @@ abstract class AbstractJsonController[+A](
 
   private def renderErrors(errors: ApplicationErrors)(implicit lang: Lang) = {
     val jsonErrorList = errors.toList
-      .flatMap { error =>
-        error.toPublicErrorList(components.i18nService)
-      }
-      .map(components.publicErrorRenderer.renderPublicError)
+        .flatMap { error =>
+          error.toPublicErrorList(components.i18nService)
+        }
+        .map(components.publicErrorRenderer.renderPublicError)
 
     Json.obj("errors" -> jsonErrorList)
   }

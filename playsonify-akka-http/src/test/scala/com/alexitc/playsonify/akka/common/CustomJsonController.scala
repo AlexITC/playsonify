@@ -13,15 +13,15 @@ class CustomJsonController extends AbstractJsonController(new CustomJsonControll
 
   override protected def onServerError(error: ServerError, id: ErrorId): Unit = {
     error
-      .cause
-      .orElse {
-        println(s"Server error: $error, id = ${error.id}")
-        None
-      }
-      .foreach { cause =>
-        println(s"Server error: $error, id = $id")
-        cause.printStackTrace()
-      }
+        .cause
+        .orElse {
+          println(s"Server error: $error, id = ${error.id}")
+          None
+        }
+        .foreach { cause =>
+          println(s"Server error: $error, id = $id")
+          cause.printStackTrace()
+        }
   }
 }
 
@@ -31,9 +31,9 @@ object CustomJsonController {
 
     override def i18nService: SingleLangService = SingleLangService.Default
 
-    override def publicErrorRenderer = new PublicErrorRenderer
+    override def publicErrorRenderer: PublicErrorRenderer = new PublicErrorRenderer
 
-    override def authenticatorService = new CustomAuthenticator
+    override def authenticatorService: AbstractAuthenticatorService[CustomUser] = new CustomAuthenticator
   }
 
   class CustomAuthenticator extends AbstractAuthenticatorService[CustomUser] {

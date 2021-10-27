@@ -56,8 +56,8 @@ trait FieldOrderingParser[+A] {
   }
 
   protected def parseOrderingCondition(unsafeOrderingCondition: String): Option[OrderingCondition] = unsafeOrderingCondition match {
-      case "asc" => Some(OrderingCondition.AscendingOrder)
-      case "desc" => Some(OrderingCondition.DescendingOrder)
-      case _ => None
+    case "asc" => Some(OrderingCondition.AscendingOrder)
+    case "desc" => Some(OrderingCondition.DescendingOrder)
+    case _ => None
     }
 }

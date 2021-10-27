@@ -14,10 +14,10 @@ package object codecs {
 
   implicit def writes[T](implicit writesT: Writes[T]): Writes[PaginatedResult[T]] = OWrites[PaginatedResult[T]] { result =>
     Json.obj(
-        "offset" -> result.offset,
-        "limit" -> result.limit,
-        "total" -> result.total,
-        "data" -> result.data
+      "offset" -> result.offset,
+      "limit" -> result.limit,
+      "total" -> result.total,
+      "data" -> result.data
     )
   }
 
