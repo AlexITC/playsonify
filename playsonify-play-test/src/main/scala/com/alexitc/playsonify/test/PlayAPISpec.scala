@@ -94,8 +94,8 @@ object PlayAPISpec {
               val encodedKey = URLEncoder.encode(key, "UTF-8")
               val encodedValue = URLEncoder.encode(value, "UTF-8")
               List(encodedKey, encodedValue).mkString("=")
-          }
-          .mkString("&")
+            }
+            .mkString("&")
       }
     }
 

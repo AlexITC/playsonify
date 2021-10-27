@@ -310,9 +310,8 @@ class AbstractJsonControllerSpec
 
     "allows to override successful result status" in {
       val id = "playsonify"
-      val request =
-        Post("/authenticated-input/model-custom-status", HttpEntity(ContentTypes.`application/json`, defaultBody))
-            .withHeaders(Authorization(OAuth2BearerToken(id)))
+      val request = Post("/authenticated-input/model-custom-status", HttpEntity(ContentTypes.`application/json`, defaultBody))
+          .withHeaders(Authorization(OAuth2BearerToken(id)))
 
       request ~> routes ~> check {
         status should ===(StatusCodes.Created)

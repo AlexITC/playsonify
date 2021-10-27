@@ -129,7 +129,7 @@ abstract class AbstractJsonController[+A] (
    */
   def publicInput[R: Reads, M](
       block: Context with HasModel[R] => FutureApplicationResult[M])(
-      implicit tjs: Writes[M]) = {
+      implicit tjs: Writes[M]): Action[JsValue]= {
 
     publicInput[R, M](Ok)(block)
   }
@@ -157,7 +157,7 @@ abstract class AbstractJsonController[+A] (
   def public[M](
       successStatus: Status)(
       block: Context => FutureApplicationResult[M])(
-      implicit tjs: Writes[M]) = Action.async(EmptyJsonParser) { request =>
+      implicit tjs: Writes[M]): Action[JsValue] = Action.async(EmptyJsonParser) { request =>
 
     val lang = messagesApi.preferred(request).lang
     val context = new Context(request, lang)
@@ -211,7 +211,7 @@ abstract class AbstractJsonController[+A] (
   def authenticatedInput[R: Reads, M](
       successStatus: Status)(
       block: Context with Authenticated with HasModel[R] => FutureApplicationResult[M])(
-      implicit tjs: Writes[M]) = Action.async(parse.json) { request =>
+      implicit tjs: Writes[M]): Action[JsValue] = Action.async(parse.json) { request =>
 
     val lang = messagesApi.preferred(request).lang
     val result = for {
@@ -304,7 +304,7 @@ abstract class AbstractJsonController[+A] (
    */
   def authenticated[M](
       block: Context with Authenticated => FutureApplicationResult[M])(
-      implicit tjs: Writes[M]) = {
+      implicit tjs: Writes[M]): Action[JsValue]= {
 
     authenticated[M](Ok)(block)
   }
@@ -378,7 +378,7 @@ abstract class AbstractJsonController[+A] (
     case _: ServerError => Results.InternalServerError
   }
 
-  private def renderErrors(errors: ApplicationErrors)(implicit lang: Lang) = {
+  private def renderErrors(errors: ApplicationErrors)(implicit lang: Lang): JsValue = {
     val jsonErrorList = errors.toList
         .flatMap { error =>
           error.toPublicErrorList(components.i18nService)

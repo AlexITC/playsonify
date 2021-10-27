@@ -27,14 +27,14 @@ class TestController(implicit mat: Materializer) extends CustomJsonController {
           }
         }
       } ~
-        path("model-custom-status") {
-          get {
-            authenticated[CustomModel](StatusCodes.Created) { ctx: Authenticated =>
-              val result = CustomModel(0, ctx.auth.id)
-              Future.successful(Good(result))
-            }
+      path("model-custom-status") {
+        get {
+          authenticated[CustomModel](StatusCodes.Created) { ctx: Authenticated =>
+            val result = CustomModel(0, ctx.auth.id)
+            Future.successful(Good(result))
           }
         }
+      }
     }
   }
 
@@ -47,13 +47,13 @@ class TestController(implicit mat: Materializer) extends CustomJsonController {
           }
         }
       } ~
-        path("model-custom-status") {
-          post {
-            authenticatedInput(StatusCodes.Created) { ctx: HasModel[CustomModel] with Authenticated =>
-              Future.successful(Good(ctx.model))
-            }
+      path("model-custom-status") {
+        post {
+          authenticatedInput(StatusCodes.Created) { ctx: HasModel[CustomModel] with Authenticated =>
+            Future.successful(Good(ctx.model))
           }
         }
+      }
     }
   }
 
@@ -67,28 +67,28 @@ class TestController(implicit mat: Materializer) extends CustomJsonController {
           }
         }
       } ~
-        path("model-custom-status") {
-          get {
-            public(StatusCodes.Created) { ctx =>
-              val result = CustomModel(0, "none")
-              Future.successful(Good(result))
-            }
-          }
-        } ~
-        path("errors") {
-          get {
-            public { ctx =>
-              errorsResponse
-            }
-          }
-        } ~
-        path("exception") {
-          get {
-            public { ctx =>
-              exceptionResponse
-            }
+      path("model-custom-status") {
+        get {
+          public(StatusCodes.Created) { ctx =>
+            val result = CustomModel(0, "none")
+            Future.successful(Good(result))
           }
         }
+      } ~
+      path("errors") {
+        get {
+          public { ctx =>
+            errorsResponse
+          }
+        }
+      } ~
+      path("exception") {
+        get {
+          public { ctx =>
+            exceptionResponse
+          }
+        }
+      }
     }
   }
 
@@ -101,27 +101,27 @@ class TestController(implicit mat: Materializer) extends CustomJsonController {
           }
         }
       } ~
-        path("model-custom-status") {
-          post {
-            publicInput(StatusCodes.Created) { ctx: HasModel[CustomModel] =>
-              Future.successful(Good(ctx.model))
-            }
-          }
-        } ~
-        path("errors") {
-          post {
-            publicInput { ctx: HasModel[CustomModel] =>
-              errorsResponse
-            }
-          }
-        } ~
-        path("exception") {
-          post {
-            publicInput { ctx: HasModel[CustomModel] =>
-              exceptionResponse
-            }
+      path("model-custom-status") {
+        post {
+          publicInput(StatusCodes.Created) { ctx: HasModel[CustomModel] =>
+            Future.successful(Good(ctx.model))
           }
         }
+      } ~
+      path("errors") {
+        post {
+          publicInput { ctx: HasModel[CustomModel] =>
+            errorsResponse
+          }
+        }
+      } ~
+      path("exception") {
+        post {
+          publicInput { ctx: HasModel[CustomModel] =>
+            exceptionResponse
+          }
+        }
+      }
     }
   }
 

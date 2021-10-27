@@ -59,5 +59,5 @@ trait FieldOrderingParser[+A] {
     case "asc" => Some(OrderingCondition.AscendingOrder)
     case "desc" => Some(OrderingCondition.DescendingOrder)
     case _ => None
-    }
+  }
 }
