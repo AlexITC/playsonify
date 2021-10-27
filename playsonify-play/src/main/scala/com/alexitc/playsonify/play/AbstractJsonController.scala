@@ -304,7 +304,7 @@ abstract class AbstractJsonController[+A] (
    */
   def authenticated[M](
       block: Context with Authenticated => FutureApplicationResult[M])(
-      implicit tjs: Writes[M]): Action[JsValue]= {
+      implicit tjs: Writes[M]): Action[JsValue] = {
 
     authenticated[M](Ok)(block)
   }
