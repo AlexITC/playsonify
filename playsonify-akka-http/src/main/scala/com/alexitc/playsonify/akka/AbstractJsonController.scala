@@ -59,6 +59,7 @@ abstract class AbstractJsonController[+A](
                     .flatMap(_.messages)
                     .map(MessageKey.apply)
                     .toList
+
                 JsonFieldValidationError(path, x)
               }
 
