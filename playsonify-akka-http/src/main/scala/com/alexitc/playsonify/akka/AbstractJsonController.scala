@@ -52,15 +52,15 @@ abstract class AbstractJsonController[+A](
         .newBuilder()
         .handle { case ValidationRejection(_, Some(e: PlayJsonError)) =>
           val errorList = e
-            .error
-            .errors
-            .map { case (path, errors) =>
-              val x = errors
-                  .flatMap(_.messages)
-                  .map(MessageKey.apply)
-                  .toList
-              JsonFieldValidationError(path, x)
-            }
+              .error
+              .errors
+              .map { case (path, errors) =>
+                val x = errors
+                    .flatMap(_.messages)
+                    .map(MessageKey.apply)
+                    .toList
+                JsonFieldValidationError(path, x)
+              }
 
           // assume that errorList is non empty
           val badResult = Bad(Every(errorList.head, errorList.drop(1): _*))
@@ -145,9 +145,9 @@ abstract class AbstractJsonController[+A](
           } yield output
 
           renderResult(successCode, result.toFuture)
+        }
       }
     }
-  }
   }
 
   def authenticated[O](
@@ -222,6 +222,7 @@ abstract class AbstractJsonController[+A](
           logServerErrors(errorId, errors)
           (getResultStatus(errors), renderErrors(errors))
       }
+
       mapResponse(_.copy(status = resultStatus)) {
         complete(response)
       }
@@ -261,7 +262,7 @@ abstract class AbstractJsonController[+A](
     }
   }
 
-  private def requestContextUnmarshaller(implicit mat: Materializer) = {
+  private def requestContextUnmarshaller(implicit mat: Materializer): FromRequestUnmarshaller[Context] = {
     Unmarshaller.strict[HttpRequest, Context] { request =>
       new Context(request)
     }
