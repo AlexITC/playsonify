@@ -8,7 +8,6 @@ sealed trait PaginatedQueryError
 object PaginatedQueryError {
 
   case object InvalidOffset extends PaginatedQueryError with InputValidationError {
-
     override def toPublicErrorList[L](i18nService: I18nService[L])(implicit lang: L): List[PublicError] = {
       val message = i18nService.render("error.paginatedQuery.offset.invalid")
       val error = FieldValidationError("offset", message)
@@ -17,7 +16,6 @@ object PaginatedQueryError {
   }
 
   case class InvalidLimit(maxValue: Int) extends PaginatedQueryError with InputValidationError {
-
     override def toPublicErrorList[L](i18nService: I18nService[L])(implicit lang: L): List[PublicError] = {
       val message = i18nService.render("error.paginatedQuery.limit.invalid", maxValue)
       val error = FieldValidationError("limit", message)

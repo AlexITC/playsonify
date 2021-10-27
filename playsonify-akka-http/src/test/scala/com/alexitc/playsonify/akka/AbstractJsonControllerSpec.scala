@@ -239,7 +239,7 @@ class AbstractJsonControllerSpec
     "serialize a result as json" in {
       val id = "playsonify"
       val request = Get("/authenticated/model")
-        .withHeaders(Authorization(OAuth2BearerToken(id)))
+          .withHeaders(Authorization(OAuth2BearerToken(id)))
 
       request ~> routes ~> check {
         status should ===(StatusCodes.OK)
@@ -253,7 +253,7 @@ class AbstractJsonControllerSpec
     "allows to override successful result status" in {
       val id = "playsonify"
       val request = Get("/authenticated/model-custom-status")
-        .withHeaders(Authorization(OAuth2BearerToken(id)))
+          .withHeaders(Authorization(OAuth2BearerToken(id)))
 
       request ~> routes ~> check {
         status should ===(StatusCodes.Created)
@@ -297,7 +297,7 @@ class AbstractJsonControllerSpec
     "serialize a result as json" in {
       val id = "playsonify"
       val request = Post("/authenticated-input/model", HttpEntity(ContentTypes.`application/json`, defaultBody))
-        .withHeaders(Authorization(OAuth2BearerToken(id)))
+          .withHeaders(Authorization(OAuth2BearerToken(id)))
 
       request ~> routes ~> check {
         status should ===(StatusCodes.OK)
@@ -310,8 +310,7 @@ class AbstractJsonControllerSpec
 
     "allows to override successful result status" in {
       val id = "playsonify"
-      val request =
-        Post("/authenticated-input/model-custom-status", HttpEntity(ContentTypes.`application/json`, defaultBody))
+      val request = Post("/authenticated-input/model-custom-status", HttpEntity(ContentTypes.`application/json`, defaultBody))
           .withHeaders(Authorization(OAuth2BearerToken(id)))
 
       request ~> routes ~> check {
@@ -324,8 +323,7 @@ class AbstractJsonControllerSpec
     }
 
     "return UNAUTHORIZED when no AUTHORIZATION header is present" in {
-      val request =
-        Post("/authenticated-input/model-custom-status", HttpEntity(ContentTypes.`application/json`, defaultBody))
+      val request = Post("/authenticated-input/model-custom-status", HttpEntity(ContentTypes.`application/json`, defaultBody))
 
       request ~> routes ~> check {
         status should ===(StatusCodes.Unauthorized)

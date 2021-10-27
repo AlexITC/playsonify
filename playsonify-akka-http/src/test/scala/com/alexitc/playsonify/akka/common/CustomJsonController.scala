@@ -12,15 +12,16 @@ import scala.concurrent.Future
 class CustomJsonController extends AbstractJsonController(new CustomJsonController.CustomJsonComponents) {
 
   override protected def onServerError(error: ServerError, id: ErrorId): Unit = {
-    error.cause
-      .orElse {
-        println(s"Server error: $error, id = ${error.id}")
-        None
-      }
-      .foreach { cause =>
-        println(s"Server error: $error, id = $id")
-        cause.printStackTrace()
-      }
+    error
+        .cause
+        .orElse {
+          println(s"Server error: $error, id = ${error.id}")
+          None
+        }
+        .foreach { cause =>
+          println(s"Server error: $error, id = $id")
+          cause.printStackTrace()
+        }
   }
 }
 
@@ -40,9 +41,9 @@ object CustomJsonController {
     override def authenticate(request: HttpRequest): FutureApplicationResult[CustomUser] = {
 
       val header = request
-        .header[Authorization]
-        .map(_.value())
-        .map(CustomUser.apply)
+          .header[Authorization]
+          .map(_.value())
+          .map(CustomUser.apply)
 
       val result = Or.from(header, One(CustomError.FailedAuthError))
       Future.successful(result)

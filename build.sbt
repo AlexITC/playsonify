@@ -1,5 +1,5 @@
 ThisBuild / organization := "com.alexitc"
-ThisBuild / version := "2.0.0"
+ThisBuild / version := "2.1.0"
 ThisBuild / scalaVersion := "2.12.7"
 
 inThisBuild(
@@ -41,7 +41,6 @@ lazy val baseLibSettings: Project => Project = _.settings(
 )
 
 lazy val playSettings: Project => Project = _.settings(
-  Compile / doc / sources := Nil,
   Compile / doc / scalacOptions ++= Seq(
     "-no-link-warnings"
   ),

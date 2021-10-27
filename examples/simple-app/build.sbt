@@ -3,9 +3,9 @@ organization := "com.alexitc"
 scalaVersion := "2.12.2"
 
 lazy val root = (project in file("."))
-  .enablePlugins(PlayScala)
+    .enablePlugins(PlayScala)
 
-val playsonifyVersion = "2.0.0"
+val playsonifyVersion = "2.1.0"
 
 libraryDependencies ++= Seq(guice)
 

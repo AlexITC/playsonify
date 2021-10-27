@@ -12,14 +12,13 @@ package object codecs {
 
   implicit val offsetWrites: Writes[Offset] = Writes[Offset] { offset => JsNumber(offset.int) }
 
-  implicit def writes[T](implicit writesT: Writes[T]): Writes[PaginatedResult[T]] = OWrites[PaginatedResult[T]] {
-    result =>
-      Json.obj(
-        "offset" -> result.offset,
-        "limit" -> result.limit,
-        "total" -> result.total,
-        "data" -> result.data
-      )
+  implicit def writes[T](implicit writesT: Writes[T]): Writes[PaginatedResult[T]] = OWrites[PaginatedResult[T]] { result =>
+    Json.obj(
+      "offset" -> result.offset,
+      "limit" -> result.limit,
+      "total" -> result.total,
+      "data" -> result.data
+    )
   }
 
   implicit val wrappedIntWrites: Writes[WrappedInt] = {

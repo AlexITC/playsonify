@@ -6,7 +6,10 @@ import com.alexitc.playsonify.models.{FieldValidationError, InputValidationError
 
 package object play {
 
-  case class JsonFieldValidationError(path: JsPath, errors: List[MessageKey]) extends InputValidationError {
+  case class JsonFieldValidationError(
+      path: JsPath,
+      errors: List[MessageKey])
+      extends InputValidationError {
 
     override def toPublicErrorList[L](i18nService: I18nService[L])(implicit lang: L): List[PublicError] = {
       val field = path.path.map(_.toJsonString.replace(".", "")).mkString(".")
