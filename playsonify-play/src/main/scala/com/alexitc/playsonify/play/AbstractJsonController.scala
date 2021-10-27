@@ -129,7 +129,7 @@ abstract class AbstractJsonController[+A] (
    */
   def publicInput[R: Reads, M](
       block: Context with HasModel[R] => FutureApplicationResult[M])(
-      implicit tjs: Writes[M]): Action[JsValue]= {
+      implicit tjs: Writes[M]): Action[JsValue] = {
 
     publicInput[R, M](Ok)(block)
   }

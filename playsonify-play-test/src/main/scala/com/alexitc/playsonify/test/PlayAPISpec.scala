@@ -87,7 +87,6 @@ object PlayAPISpec {
   object Implicits {
 
     implicit class HttpExt(val params: List[(String, String)]) extends AnyVal {
-
       def toQueryString: String = {
         params
             .map { case (key, value) =>
@@ -100,7 +99,6 @@ object PlayAPISpec {
     }
 
     implicit class StringUrlExt(val url: String) extends AnyVal {
-
       def withQueryParams(params: (String, String)*): String = {
         List(url, params.toList.toQueryString).mkString("?")
       }
