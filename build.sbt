@@ -41,7 +41,6 @@ lazy val baseLibSettings: Project => Project = _.settings(
 )
 
 lazy val playSettings: Project => Project = _.settings(
-  Compile / doc / sources := Nil,
   Compile / doc / scalacOptions ++= Seq(
     "-no-link-warnings"
   ),
