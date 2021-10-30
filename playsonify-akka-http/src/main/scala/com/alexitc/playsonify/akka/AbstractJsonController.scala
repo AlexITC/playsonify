@@ -17,8 +17,7 @@ import play.api.libs.json.{JsValue, Json}
 import scala.concurrent.Future
 import scala.util.{Failure, Success}
 
-abstract class AbstractJsonController[+A](
-    components: JsonControllerComponents[A])
+abstract class AbstractJsonController[+A](components: JsonControllerComponents[A])
     extends Directives
     with PlayJsonSupport {
 
@@ -49,44 +48,41 @@ abstract class AbstractJsonController[+A](
     }
 
     RejectionHandler
-        .newBuilder()
-        .handle { case ValidationRejection(_, Some(e: PlayJsonError)) =>
-          val errorList = e
-              .error
-              .errors
-              .map { case (path, errors) =>
-                val x = errors
-                    .flatMap(_.messages)
-                    .map(MessageKey.apply)
-                    .toList
+      .newBuilder()
+      .handle { case ValidationRejection(_, Some(e: PlayJsonError)) =>
+        val errorList = e.error.errors
+          .map { case (path, errors) =>
+            val x = errors
+              .flatMap(_.messages)
+              .map(MessageKey.apply)
+              .toList
 
-                JsonFieldValidationError(path, x)
-              }
+            JsonFieldValidationError(path, x)
+          }
 
-          // assume that errorList is non empty
-          val badResult = Bad(Every(errorList.head, errorList.drop(1): _*))
-          val result: FutureApplicationResult[String] = Future.successful(badResult)
-          renderResult(StatusCodes.BadRequest, result)
-        }
-        .handle { case MalformedRequestContentRejection(_, _: JsonParseException) | RequestEntityExpectedRejection =>
-          val error = MalformedJsonError
-          val badResult = Bad(error).accumulating
-          val result: FutureApplicationResult[String] = Future.successful(badResult)
-          renderResult(StatusCodes.BadRequest, result)
-        }.handle { case MethodRejection(_) =>
-          notFoundHandler
-        }
-        .handleNotFound {
-          notFoundHandler
-        }
-        .result()
+        // assume that errorList is non empty
+        val badResult = Bad(Every(errorList.head, errorList.drop(1): _*))
+        val result: FutureApplicationResult[String] = Future.successful(badResult)
+        renderResult(StatusCodes.BadRequest, result)
+      }
+      .handle { case MalformedRequestContentRejection(_, _: JsonParseException) | RequestEntityExpectedRejection =>
+        val error = MalformedJsonError
+        val badResult = Bad(error).accumulating
+        val result: FutureApplicationResult[String] = Future.successful(badResult)
+        renderResult(StatusCodes.BadRequest, result)
+      }
+      .handle { case MethodRejection(_) =>
+        notFoundHandler
+      }
+      .handleNotFound {
+        notFoundHandler
+      }
+      .result()
   }
 
   def publicInput[I, O](successCode: StatusCode)(
-      f: Context with HasModel[I] => FutureApplicationResult[O])(
-      implicit um: FromRequestUnmarshaller[I],
-      rm: ToResponseMarshaller[O],
-      mat: Materializer): Route = {
+      f: Context with HasModel[I] => FutureApplicationResult[O]
+  )(implicit um: FromRequestUnmarshaller[I], rm: ToResponseMarshaller[O], mat: Materializer): Route = {
 
     handleRejections(rejectionHandler) {
       val directive = entity(as(requestContextWithModelUnmarshaller))
@@ -96,19 +92,15 @@ abstract class AbstractJsonController[+A](
   }
 
   def publicInput[I, O](
-      f: Context with HasModel[I] => FutureApplicationResult[O])(
-      implicit um: FromRequestUnmarshaller[I],
-      rm: ToResponseMarshaller[O],
-      mat: Materializer): Route = {
+      f: Context with HasModel[I] => FutureApplicationResult[O]
+  )(implicit um: FromRequestUnmarshaller[I], rm: ToResponseMarshaller[O], mat: Materializer): Route = {
 
     publicInput[I, O](StatusCodes.OK)(f)
   }
 
   def public[O](
-      successCode: StatusCode)(
-      f: Context => FutureApplicationResult[O])(
-      implicit rm: ToResponseMarshaller[O],
-      mat: Materializer): Route = {
+      successCode: StatusCode
+  )(f: Context => FutureApplicationResult[O])(implicit rm: ToResponseMarshaller[O], mat: Materializer): Route = {
 
     handleRejections(rejectionHandler) {
       val directive = entity(as(requestContextUnmarshaller))
@@ -118,18 +110,15 @@ abstract class AbstractJsonController[+A](
   }
 
   def public[O](
-      f: Context => FutureApplicationResult[O])(
-      implicit rm: ToResponseMarshaller[O],
-      mat: Materializer): Route = {
+      f: Context => FutureApplicationResult[O]
+  )(implicit rm: ToResponseMarshaller[O], mat: Materializer): Route = {
 
     public[O](StatusCodes.OK)(f)
   }
 
-  def authenticated[O](
-      successCode: StatusCode)(
-      f: Context with Authenticated => FutureApplicationResult[O])(
-      implicit rm: ToResponseMarshaller[O],
-      mat: Materializer): Route = {
+  def authenticated[O](successCode: StatusCode)(
+      f: Context with Authenticated => FutureApplicationResult[O]
+  )(implicit rm: ToResponseMarshaller[O], mat: Materializer): Route = {
 
     handleRejections(rejectionHandler) {
       // TODO: unmarshall request after authentication
@@ -152,18 +141,15 @@ abstract class AbstractJsonController[+A](
   }
 
   def authenticated[O](
-      f: Context with Authenticated => FutureApplicationResult[O])(
-      implicit rm: ToResponseMarshaller[O],
-      mat: Materializer): Route = {
+      f: Context with Authenticated => FutureApplicationResult[O]
+  )(implicit rm: ToResponseMarshaller[O], mat: Materializer): Route = {
 
     authenticated[O](StatusCodes.OK)(f)
   }
 
   def authenticatedInput[I, O](successCode: StatusCode)(
-      f: Context with Authenticated with HasModel[I] => FutureApplicationResult[O])(
-      implicit um: FromRequestUnmarshaller[I],
-      rm: ToResponseMarshaller[O],
-      mat: Materializer): Route = {
+      f: Context with Authenticated with HasModel[I] => FutureApplicationResult[O]
+  )(implicit um: FromRequestUnmarshaller[I], rm: ToResponseMarshaller[O], mat: Materializer): Route = {
 
     handleRejections(rejectionHandler) {
       // TODO: unmarshall request after authentication
@@ -188,24 +174,21 @@ abstract class AbstractJsonController[+A](
   }
 
   def authenticatedInput[I, O](
-      f: Context with Authenticated with HasModel[I] => FutureApplicationResult[O])(
-      implicit um: FromRequestUnmarshaller[I],
-      rm: ToResponseMarshaller[O],
-      mat: Materializer): Route = {
+      f: Context with Authenticated with HasModel[I] => FutureApplicationResult[O]
+  )(implicit um: FromRequestUnmarshaller[I], rm: ToResponseMarshaller[O], mat: Materializer): Route = {
 
     authenticatedInput[I, O](StatusCodes.OK)(f)
   }
 
   private def logServerErrors(errorId: ErrorId, errors: ApplicationErrors): Unit = {
     errors
-        .collect { case e: ServerError => e }
-        .foreach { onServerError(_, errorId) }
+      .collect { case e: ServerError => e }
+      .foreach { onServerError(_, errorId) }
   }
 
-  private def renderResult[T](
-      successCode: StatusCode,
-      f: FutureApplicationResult[T])(
-      implicit rm: ToResponseMarshaller[T]): Route = {
+  private def renderResult[T](successCode: StatusCode, f: FutureApplicationResult[T])(implicit
+      rm: ToResponseMarshaller[T]
+  ): Route = {
 
     onComplete(f) { r =>
       val (resultStatus, response): (StatusCode, ToResponseMarshallable) = r match {
@@ -241,25 +224,26 @@ abstract class AbstractJsonController[+A](
 
   private def renderErrors(errors: ApplicationErrors): JsValue = {
     val jsonErrorList = errors.toList
-        .flatMap { error =>
-          error.toPublicErrorList(components.i18nService)
-        }
-        .map(components.publicErrorRenderer.renderPublicError)
+      .flatMap { error =>
+        error.toPublicErrorList(components.i18nService)
+      }
+      .map(components.publicErrorRenderer.renderPublicError)
 
     Json.obj("errors" -> jsonErrorList)
   }
 
-  private def requestContextWithModelUnmarshaller[T](
-      implicit um: FromRequestUnmarshaller[T],
-      mat: Materializer): FromRequestUnmarshaller[Context with HasModel[T]] = {
+  private def requestContextWithModelUnmarshaller[T](implicit
+      um: FromRequestUnmarshaller[T],
+      mat: Materializer
+  ): FromRequestUnmarshaller[Context with HasModel[T]] = {
 
     Unmarshaller.apply[HttpRequest, Context with HasModel[T]] { implicit ec => request =>
       um.apply(request)(ec, mat)
-          .map { x =>
-            new Context(request) with HasModel[T] {
-              override def model: T = x
-            }
+        .map { x =>
+          new Context(request) with HasModel[T] {
+            override def model: T = x
           }
+        }
     }
   }
 

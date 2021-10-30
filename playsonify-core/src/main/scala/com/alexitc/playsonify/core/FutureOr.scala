@@ -38,29 +38,33 @@ class FutureOr[+A](val future: FutureApplicationResult[A]) extends AnyVal {
 }
 
 object FutureOr {
+
   object Implicits {
+
     implicit class FutureOps[+A](val future: FutureApplicationResult[A]) extends AnyVal {
+
       def toFutureOr: FutureOr[A] = {
         new FutureOr(future)
       }
     }
 
     implicit class FutureListOps[+A](val inner: List[FutureApplicationResult[A]]) extends AnyVal {
+
       def toFutureOr(implicit ec: ExecutionContext): FutureOr[List[A]] = {
         val futureList = Future.sequence(inner)
 
         val future = futureList.map { resultList =>
           val errorsMaybe = resultList
-              .flatMap(_.swap.toOption)
-              .reduceLeftOption(_ ++ _)
-              .map(_.distinct)
+            .flatMap(_.swap.toOption)
+            .reduceLeftOption(_ ++ _)
+            .map(_.distinct)
 
           errorsMaybe
-              .map(Bad(_))
-              .getOrElse {
-                val valueList = resultList.flatMap(_.toOption)
-                Good(valueList)
-              }
+            .map(Bad(_))
+            .getOrElse {
+              val valueList = resultList.flatMap(_.toOption)
+              Good(valueList)
+            }
         }
 
         new FutureOr(future)
@@ -68,6 +72,7 @@ object FutureOr {
     }
 
     implicit class OrOps[+A](val or: ApplicationResult[A]) extends AnyVal {
+
       def toFutureOr: FutureOr[A] = {
         val future = Future.successful(or)
         new FutureOr(future)
@@ -75,6 +80,7 @@ object FutureOr {
     }
 
     implicit class OptionOps[+A](val option: Option[A]) extends AnyVal {
+
       def toFutureOr(error: ApplicationError): FutureOr[A] = {
         val or = Or.from(option, One(error))
         val future = Future.successful(or)

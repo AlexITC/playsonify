@@ -4,7 +4,9 @@ import com.alexitc.playsonify.models.ordering.{FieldOrdering, OrderingCondition}
 
 class FieldOrderingSQLInterpreter {
 
-  def toOrderByClause[A](fieldOrdering: FieldOrdering[A])(implicit columnNameResolver: ColumnNameResolver[A]): String = {
+  def toOrderByClause[A](
+      fieldOrdering: FieldOrdering[A]
+  )(implicit columnNameResolver: ColumnNameResolver[A]): String = {
     val field = columnNameResolver.getColumnName(fieldOrdering.field)
     val condition = getCondition(fieldOrdering.orderingCondition)
     val uniqueField = columnNameResolver.getUniqueColumnName

@@ -18,7 +18,7 @@ import scala.concurrent.Future
 trait PlayAPISpec extends PlaySpec with ScalaFutures {
 
   protected def guiceApplicationBuilder: GuiceApplicationBuilder = GuiceApplicationBuilder()
-      .in(Mode.Test)
+    .in(Mode.Test)
 
   protected def application: Application
 
@@ -27,11 +27,11 @@ trait PlayAPISpec extends PlaySpec with ScalaFutures {
 
   protected def log[T](request: FakeRequest[T], response: Future[Result]): Unit
 
-  /** Syntactic sugar for calling APIs **/
+  /** Syntactic sugar for calling APIs * */
   def GET(url: String, extraHeaders: (String, String)*): Future[Result] = {
     val headers = JsonHeader :: extraHeaders.toList
     val request = FakeRequest("GET", url)
-        .withHeaders(headers: _*)
+      .withHeaders(headers: _*)
 
     val response = route(application, request).get
     log(request, response)
@@ -46,8 +46,8 @@ trait PlayAPISpec extends PlaySpec with ScalaFutures {
     val headers = JsonHeader :: extraHeaders.toList
     val json = jsonBody.getOrElse(EmptyJson)
     val request = FakeRequest("POST", url)
-        .withHeaders(headers: _*)
-        .withBody(json)
+      .withHeaders(headers: _*)
+      .withBody(json)
 
     val response = route(application, request).get
     log(request, response)
@@ -62,8 +62,8 @@ trait PlayAPISpec extends PlaySpec with ScalaFutures {
     val headers = JsonHeader :: extraHeaders.toList
     val json = jsonBody.getOrElse(EmptyJson)
     val request = FakeRequest("PUT", url)
-        .withHeaders(headers: _*)
-        .withBody(json)
+      .withHeaders(headers: _*)
+      .withBody(json)
 
     val response = route(application, request).get
     log(request, response)
@@ -73,7 +73,7 @@ trait PlayAPISpec extends PlaySpec with ScalaFutures {
   def DELETE(url: String, extraHeaders: (String, String)*): Future[Result] = {
     val headers = JsonHeader :: extraHeaders.toList
     val request = FakeRequest("DELETE", url)
-        .withHeaders(headers: _*)
+      .withHeaders(headers: _*)
 
     val response = route(application, request).get
     log(request, response)
@@ -87,18 +87,20 @@ object PlayAPISpec {
   object Implicits {
 
     implicit class HttpExt(val params: List[(String, String)]) extends AnyVal {
+
       def toQueryString: String = {
         params
-            .map { case (key, value) =>
-              val encodedKey = URLEncoder.encode(key, "UTF-8")
-              val encodedValue = URLEncoder.encode(value, "UTF-8")
-              List(encodedKey, encodedValue).mkString("=")
-            }
-            .mkString("&")
+          .map { case (key, value) =>
+            val encodedKey = URLEncoder.encode(key, "UTF-8")
+            val encodedValue = URLEncoder.encode(value, "UTF-8")
+            List(encodedKey, encodedValue).mkString("=")
+          }
+          .mkString("&")
       }
     }
 
     implicit class StringUrlExt(val url: String) extends AnyVal {
+
       def withQueryParams(params: (String, String)*): String = {
         List(url, params.toList.toQueryString).mkString("?")
       }

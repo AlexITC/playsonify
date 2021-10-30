@@ -9,9 +9,7 @@ class PaginatedQueryValidator {
   import PaginatedQueryValidator._
 
   def validate(query: PaginatedQuery, maxLimit: Int): ApplicationResult[PaginatedQuery] = {
-    Accumulation.withGood(
-      validateOffset(query.offset),
-      validateLimit(query.limit, maxLimit)) {
+    Accumulation.withGood(validateOffset(query.offset), validateLimit(query.limit, maxLimit)) {
 
       PaginatedQuery.apply
     }
