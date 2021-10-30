@@ -5,7 +5,7 @@ scalaVersion := "2.12.2"
 lazy val root = (project in file("."))
     .enablePlugins(PlayScala)
 
-val playsonifyVersion = "2.0.0"
+val playsonifyVersion = "2.1.0"
 
 libraryDependencies ++= Seq(guice)
 
@@ -23,4 +23,3 @@ libraryDependencies += "ch.qos.logback" % "logback-core" % "1.2.3"
 libraryDependencies += "ch.qos.logback" % "logback-classic" % "1.2.3"
 
 libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "3.1.2" % Test
-
