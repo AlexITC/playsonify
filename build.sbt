@@ -1,6 +1,6 @@
 ThisBuild / organization := "com.alexitc"
-ThisBuild / version := "2.1.0"
-ThisBuild / scalaVersion := "2.12.7"
+ThisBuild / version := "2.2.0"
+ThisBuild / scalaVersion := "2.12.10"
 
 inThisBuild(
   List(
@@ -24,7 +24,7 @@ inThisBuild(
   )
 )
 
-val scalacticVersion = "3.0.5"
+val scalacticVersion = "3.1.2"
 
 lazy val baseLibSettings: Project => Project = _.settings(
   scalacOptions ++= Seq(
@@ -45,7 +45,7 @@ lazy val playSettings: Project => Project = _.settings(
     "-no-link-warnings"
   ),
   libraryDependencies ++= Seq(
-    "org.scalatestplus.play" %% "scalatestplus-play" % "3.1.2"
+    "org.scalatestplus.play" %% "scalatestplus-play" % "5.1.0"
   )
 )
 
@@ -62,7 +62,7 @@ lazy val `playsonify-play` = (project in file("playsonify-play"))
   .dependsOn(`playsonify-core`)
   .settings(
     libraryDependencies ++= Seq(
-      "com.typesafe.play" %% "play" % "2.6.20",
+      "com.typesafe.play" %% "play" % "2.8.0",
       "org.scalactic" %% "scalactic" % scalacticVersion
     )
   )
