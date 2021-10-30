@@ -1,5 +1,4 @@
 ThisBuild / organization := "com.alexitc"
-ThisBuild / version := "2.2.0"
 ThisBuild / scalaVersion := "2.12.10"
 
 inThisBuild(
