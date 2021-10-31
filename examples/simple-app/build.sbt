@@ -1,11 +1,11 @@
 name := "playsonify-simple-app"
 organization := "com.alexitc"
-scalaVersion := "2.12.2"
+scalaVersion := "2.13.6"
 
 lazy val root = (project in file("."))
-    .enablePlugins(PlayScala)
+  .enablePlugins(PlayScala)
 
-val playsonifyVersion = "2.1.0"
+val playsonifyVersion = "2.3.0"
 
 libraryDependencies ++= Seq(guice)
 
@@ -16,7 +16,7 @@ libraryDependencies ++= Seq(
   "com.alexitc" %% "playsonify-play-test" % playsonifyVersion % Test
 )
 
-libraryDependencies += "org.scalactic" %% "scalactic" % "3.0.5"
+libraryDependencies += "org.scalactic" %% "scalactic" % "3.1.2"
 
 libraryDependencies += "org.slf4j" % "slf4j-api" % "1.7.25"
 libraryDependencies += "ch.qos.logback" % "logback-core" % "1.2.3"
