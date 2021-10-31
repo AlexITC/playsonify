@@ -2,9 +2,10 @@ package com.alexitc.playsonify.validators
 
 import com.alexitc.playsonify.models.pagination.{Limit, Offset, PaginatedQuery, PaginatedQueryError}
 import org.scalactic.{Bad, Every, Good}
-import org.scalatest.{MustMatchers, WordSpec}
+import org.scalatest.matchers.must.Matchers._
+import org.scalatest.wordspec.AnyWordSpec
 
-class PaginatedQueryValidatorSpec extends WordSpec with MustMatchers {
+class PaginatedQueryValidatorSpec extends AnyWordSpec {
 
   val validator = new PaginatedQueryValidator
 

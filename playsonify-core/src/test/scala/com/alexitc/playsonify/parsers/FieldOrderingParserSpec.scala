@@ -2,9 +2,10 @@ package com.alexitc.playsonify.parsers
 
 import com.alexitc.playsonify.models.ordering.{FieldOrdering, OrderingCondition, OrderingError, OrderingQuery}
 import org.scalactic.{Bad, Every, Good}
-import org.scalatest.{MustMatchers, WordSpec}
+import org.scalatest.matchers.must.Matchers._
+import org.scalatest.wordspec.AnyWordSpec
 
-class FieldOrderingParserSpec extends WordSpec with MustMatchers {
+class FieldOrderingParserSpec extends AnyWordSpec {
 
   import FieldOrderingParserSpec._
 

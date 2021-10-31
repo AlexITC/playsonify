@@ -1,10 +1,10 @@
 package com.alexitc.playsonify.sql
 
 import com.alexitc.playsonify.models.ordering.{FieldOrdering, OrderingCondition}
-import org.scalatest.MustMatchers._
-import org.scalatest.WordSpec
+import org.scalatest.matchers.must.Matchers._
+import org.scalatest.wordspec.AnyWordSpec
 
-class FieldOrderingSQLInterpreterSpec extends WordSpec {
+class FieldOrderingSQLInterpreterSpec extends AnyWordSpec {
 
   import FieldOrderingSQLInterpreterSpec._
 
