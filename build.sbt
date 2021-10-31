@@ -1,5 +1,5 @@
 ThisBuild / organization := "com.alexitc"
-ThisBuild / scalaVersion := "2.12.10"
+ThisBuild / scalaVersion := "2.13.6"
 
 inThisBuild(
   List(
@@ -23,7 +23,9 @@ inThisBuild(
   )
 )
 
+val playVersion = "2.8.8"
 val scalacticVersion = "3.1.2"
+val scalatestVersion = "3.1.2"
 
 lazy val baseLibSettings: Project => Project = _.settings(
   scalacOptions ++= Seq(
@@ -35,7 +37,7 @@ lazy val baseLibSettings: Project => Project = _.settings(
     "-unchecked" // Enable additional warnings where generated code depends on assumptions.
   ),
   libraryDependencies ++= Seq(
-    "org.scalatest" %% "scalatest" % "3.0.5" % Test
+    "org.scalatest" %% "scalatest" % scalatestVersion % Test
   )
 )
 
@@ -61,26 +63,8 @@ lazy val `playsonify-play` = (project in file("playsonify-play"))
   .dependsOn(`playsonify-core`)
   .settings(
     libraryDependencies ++= Seq(
-      "com.typesafe.play" %% "play" % "2.8.0",
+      "com.typesafe.play" %% "play" % playVersion,
       "org.scalactic" %% "scalactic" % scalacticVersion
-    )
-  )
-
-lazy val `playsonify-akka-http` = (project in file("playsonify-akka-http"))
-  .configure(baseLibSettings)
-  .dependsOn(`playsonify-core`)
-  .settings(
-    libraryDependencies ++= Seq(
-      "com.typesafe.akka" %% "akka-http" % "10.1.5",
-      "com.typesafe.akka" %% "akka-stream" % "2.5.12",
-      "de.heikoseeberger" %% "akka-http-play-json" % "1.22.0",
-      "com.typesafe.play" %% "play-json" % "2.6.10",
-      "org.scalactic" %% "scalactic" % scalacticVersion
-    ),
-    // test
-    libraryDependencies ++= Seq(
-      "org.mockito" % "mockito-core" % "2.15.0" % Test,
-      "com.typesafe.akka" %% "akka-http-testkit" % "10.1.4" % Test
     )
   )
 

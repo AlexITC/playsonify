@@ -370,7 +370,7 @@ abstract class AbstractJsonController[+A](components: JsonControllerComponents[A
           }
 
           // assume that errorList is non empty
-          Bad(Every(errorList.head, errorList.drop(1): _*))
+          Bad(Every.from(errorList).getOrElse(throw new RuntimeException("Impossible")))
         },
         valid => Good(valid)
       )
