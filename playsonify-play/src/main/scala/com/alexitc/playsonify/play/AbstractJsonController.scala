@@ -11,28 +11,28 @@ import play.api.mvc._
 import scala.concurrent.Future
 import scala.util.control.NonFatal
 
-/**
- * Abstract Controller designed to process actions that expect an input model
- * and computes an output model.
- *
- * The controller handles the json serialization and deserialization as well
- * as the error responses and http status codes.
- *
- * A common way for using this class is like:
- * {{{
- *   class MyController @Inject() (components: MyJsonControllerComponents)
- *       extends MyJsonController(components) {
- *
- *     ...
- *   }
- * }}}
- *
- * Where MyJsonControllerComponents is a custom implementation for [[JsonControllerComponents]]
- * and MyJsonController is the custom implementation for [[AbstractJsonController]].
- *
- * @param components the components used by the logic of this JsonController.
- * @tparam A the value type for an authenticated request, like User or UserId.
- */
+/** Abstract Controller designed to process actions that expect an input model and computes an output model.
+  *
+  * The controller handles the json serialization and deserialization as well as the error responses and http status
+  * codes.
+  *
+  * A common way for using this class is like:
+  * {{{
+  *   class MyController @Inject() (components: MyJsonControllerComponents)
+  *       extends MyJsonController(components) {
+  *
+  *     ...
+  *   }
+  * }}}
+  *
+  * Where MyJsonControllerComponents is a custom implementation for [[JsonControllerComponents]] and MyJsonController is
+  * the custom implementation for [[AbstractJsonController]].
+  *
+  * @param components
+  *   the components used by the logic of this JsonController.
+  * @tparam A
+  *   the value type for an authenticated request, like User or UserId.
+  */
 abstract class AbstractJsonController[+A](components: JsonControllerComponents[A]) extends MessagesBaseController {
 
   class Context(val request: MessagesRequest[JsValue], val lang: Lang)
@@ -50,20 +50,19 @@ abstract class AbstractJsonController[+A](components: JsonControllerComponents[A
 
   protected implicit val ec = components.executionContext
 
-  /**
-   * Override this and decide what to do in case of server errors.
-   *
-   * For example, log the error with the id, handle metrics, etc.
-   *
-   * @param error the error that occurred.
-   */
+  /** Override this and decide what to do in case of server errors.
+    *
+    * For example, log the error with the id, handle metrics, etc.
+    *
+    * @param error
+    *   the error that occurred.
+    */
   protected def onServerError(error: ServerError): Unit
 
-  /**
-   * Ignores the body returning an empty json.
-   *
-   * Useful for using methods that doesn't require input.
-   */
+  /** Ignores the body returning an empty json.
+    *
+    * Useful for using methods that doesn't require input.
+    */
   protected val EmptyJsonParser = parse.ignore(Json.toJson(JsObject.empty))
 
   def publicInput[R: Reads](block: Context with HasModel[R] => FutureApplicationResult[Result]): Action[JsValue] =
@@ -81,32 +80,35 @@ abstract class AbstractJsonController[+A](components: JsonControllerComponents[A
       renderResult(result.toFuture)(lang)
     }
 
-  /**
-   * Execute an asynchronous action that receives the model [[R]]
-   * and returns the model [[M]] on success.
-   *
-   * The model [[R]] is wrapped in a [[Context]].
-   *
-   * Note: The request will not be authenticated.
-   *
-   * Example:
-   * {{{
-   *   import Context._
-   *
-   *   def createUser = publicInput(Created) { context: HasModel[CreateUserModel] =>
-   *     ...
-   *   }
-   * }}}
-   *
-   * Where there is an implicit deserializer for the CreateUserModel class, in case of a successful result,
-   * the HTTP status Created (201) will be returned.
-   *
-   * @param successStatus the http status for a successful response
-   * @param block the block to execute
-   * @param tjs the serializer for [[M]]
-   * @tparam R the input model type
-   * @tparam M the output model type
-   */
+  /** Execute an asynchronous action that receives the model [[R]] and returns the model [[M]] on success.
+    *
+    * The model [[R]] is wrapped in a [[Context]].
+    *
+    * Note: The request will not be authenticated.
+    *
+    * Example:
+    * {{{
+    *   import Context._
+    *
+    *   def createUser = publicInput(Created) { context: HasModel[CreateUserModel] =>
+    *     ...
+    *   }
+    * }}}
+    *
+    * Where there is an implicit deserializer for the CreateUserModel class, in case of a successful result, the HTTP
+    * status Created (201) will be returned.
+    *
+    * @param successStatus
+    *   the http status for a successful response
+    * @param block
+    *   the block to execute
+    * @param tjs
+    *   the serializer for [[M]]
+    * @tparam R
+    *   the input model type
+    * @tparam M
+    *   the output model type
+    */
   def publicInput[R: Reads, M](successStatus: Status)(
       block: Context with HasModel[R] => FutureApplicationResult[M]
   )(implicit tjs: Writes[M]): Action[JsValue] = Action.async(parse.json) { request =>
@@ -123,21 +125,20 @@ abstract class AbstractJsonController[+A](components: JsonControllerComponents[A
     renderResult(successStatus, result.toFuture)(lang, tjs)
   }
 
-  /**
-   * Sets Ok as the default successStatus.
-   *
-   * Example:
-   * {{{
-   *   import Context._
-   *
-   *   def login = publicInput { context: HasModel[LoginModel] =>
-   *     ...
-   *   }
-   * }}}
-   *
-   * Where there is an implicit deserializer for the LoginModel class, in case of a successful result,
-   * the HTTP status Ok (200) will be returned.
-   */
+  /** Sets Ok as the default successStatus.
+    *
+    * Example:
+    * {{{
+    *   import Context._
+    *
+    *   def login = publicInput { context: HasModel[LoginModel] =>
+    *     ...
+    *   }
+    * }}}
+    *
+    * Where there is an implicit deserializer for the LoginModel class, in case of a successful result, the HTTP status
+    * Ok (200) will be returned.
+    */
   def publicInput[R: Reads, M](
       block: Context with HasModel[R] => FutureApplicationResult[M]
   )(implicit tjs: Writes[M]): Action[JsValue] = {
@@ -153,26 +154,28 @@ abstract class AbstractJsonController[+A](components: JsonControllerComponents[A
       renderResult(result)(lang)
   }
 
-  /**
-   * Execute an asynchronous action that doesn't need an input model
-   * and returns the model [[M]] on success.
-   *
-   * Note: The request will not be authenticated.
-   *
-   * Example:
-   * {{{
-   *   def verifyEmail(token: String) = public { context: Context =>
-   *     ...
-   *   }
-   * }}}
-   *
-   * In case of a successful result, the HTTP status Ok (200) will be returned.
-   *
-   * @param successStatus the http status for a successful response
-   * @param block the block to execute
-   * @param tjs the serializer for [[M]]
-   * @tparam M the output model type
-   */
+  /** Execute an asynchronous action that doesn't need an input model and returns the model [[M]] on success.
+    *
+    * Note: The request will not be authenticated.
+    *
+    * Example:
+    * {{{
+    *   def verifyEmail(token: String) = public { context: Context =>
+    *     ...
+    *   }
+    * }}}
+    *
+    * In case of a successful result, the HTTP status Ok (200) will be returned.
+    *
+    * @param successStatus
+    *   the http status for a successful response
+    * @param block
+    *   the block to execute
+    * @param tjs
+    *   the serializer for [[M]]
+    * @tparam M
+    *   the output model type
+    */
   def public[M](successStatus: Status)(
       block: Context => FutureApplicationResult[M]
   )(implicit tjs: Writes[M]): Action[JsValue] = Action.async(EmptyJsonParser) { request =>
@@ -182,18 +185,17 @@ abstract class AbstractJsonController[+A](components: JsonControllerComponents[A
     renderResult(successStatus, result)(lang, tjs)
   }
 
-  /**
-   * Sets a default successStatus.
-   *
-   * Example:
-   * {{{
-   *   def verifyEmail(token: String) = public(Created) { context: Context =>
-   *     ...
-   *   }
-   * }}}
-   *
-   * In case of a successful result, the HTTP status Created (201) will be returned.
-   */
+  /** Sets a default successStatus.
+    *
+    * Example:
+    * {{{
+    *   def verifyEmail(token: String) = public(Created) { context: Context =>
+    *     ...
+    *   }
+    * }}}
+    *
+    * In case of a successful result, the HTTP status Created (201) will be returned.
+    */
   def public[M](block: Context => FutureApplicationResult[M])(implicit tjs: Writes[M]): Action[JsValue] = {
 
     public[M](Ok)(block)
@@ -218,30 +220,33 @@ abstract class AbstractJsonController[+A](components: JsonControllerComponents[A
     renderResult(result.toFuture)(lang)
   }
 
-  /**
-   * Execute an asynchronous action that receives the model [[R]]
-   * and produces the model [[M]] on success, the http status in
-   * case of a successful result will be taken from successStatus param.
-   *
-   * Note: The request will be authenticated using your custom [[AbstractAuthenticatorService]].
-   *
-   * Example:
-   * {{{
-   *   import Context._
-   *
-   *   def setPreferences = authenticatedInput(Ok) { context: HasModel[SetUserPreferencesModel] with Authenticated =>
-   *     ...
-   *   }
-   * }}}
-   *
-   * Where there is an implicit deserializer for the SetUserPreferencesModel class.
-   *
-   * @param successStatus the http status for a successful response
-   * @param block the block to execute
-   * @param tjs the serializer for [[M]]
-   * @tparam R the input model type
-   * @tparam M the output model type
-   */
+  /** Execute an asynchronous action that receives the model [[R]] and produces the model [[M]] on success, the http
+    * status in case of a successful result will be taken from successStatus param.
+    *
+    * Note: The request will be authenticated using your custom [[AbstractAuthenticatorService]].
+    *
+    * Example:
+    * {{{
+    *   import Context._
+    *
+    *   def setPreferences = authenticatedInput(Ok) { context: HasModel[SetUserPreferencesModel] with Authenticated =>
+    *     ...
+    *   }
+    * }}}
+    *
+    * Where there is an implicit deserializer for the SetUserPreferencesModel class.
+    *
+    * @param successStatus
+    *   the http status for a successful response
+    * @param block
+    *   the block to execute
+    * @param tjs
+    *   the serializer for [[M]]
+    * @tparam R
+    *   the input model type
+    * @tparam M
+    *   the output model type
+    */
   def authenticatedInput[R: Reads, M](successStatus: Status)(
       block: Context with Authenticated with HasModel[R] => FutureApplicationResult[M]
   )(implicit tjs: Writes[M]): Action[JsValue] = Action.async(parse.json) { request =>
@@ -261,22 +266,21 @@ abstract class AbstractJsonController[+A](components: JsonControllerComponents[A
     renderResult(successStatus, result.toFuture)(lang, tjs)
   }
 
-  /**
-   * Sets Ok as the default successStatus.
-   *
-   * Note: The request will be authenticated using your custom [[AbstractAuthenticatorService]].
-   *
-   * Example:
-   * {{{
-   *   import Context._
-   *
-   *   def setPreferences = authenticatedInput { context: HasModel[SetUserPreferencesModel] with Authenticated =>
-   *     ...
-   *   }
-   * }}}
-   *
-   * Where there is an implicit deserializer for the SetUserPreferencesModel class.
-   */
+  /** Sets Ok as the default successStatus.
+    *
+    * Note: The request will be authenticated using your custom [[AbstractAuthenticatorService]].
+    *
+    * Example:
+    * {{{
+    *   import Context._
+    *
+    *   def setPreferences = authenticatedInput { context: HasModel[SetUserPreferencesModel] with Authenticated =>
+    *     ...
+    *   }
+    * }}}
+    *
+    * Where there is an implicit deserializer for the SetUserPreferencesModel class.
+    */
   def authenticatedInput[R: Reads, M](
       block: Context with Authenticated with HasModel[R] => FutureApplicationResult[M]
   )(implicit tjs: Writes[M]): Action[JsValue] = {
@@ -299,26 +303,28 @@ abstract class AbstractJsonController[+A](components: JsonControllerComponents[A
       renderResult(result.toFuture)(lang)
     }
 
-  /**
-   * Execute an asynchronous action that doesn't need an input model
-   * and returns the model [[M]] on success.
-   *
-   * Note: The request will be authenticated using your custom [[AbstractAuthenticatorService]].
-   *
-   * Example:
-   * {{{
-   *   import Context._
-   *
-   *   def whoAmI() = authenticated { context: Authenticated =>
-   *     ...
-   *   }
-   * }}}
-   *
-   * @param successStatus the http status for a successful response
-   * @param block the block to execute
-   * @param tjs the serializer for [[M]]
-   * @tparam M the output model type
-   */
+  /** Execute an asynchronous action that doesn't need an input model and returns the model [[M]] on success.
+    *
+    * Note: The request will be authenticated using your custom [[AbstractAuthenticatorService]].
+    *
+    * Example:
+    * {{{
+    *   import Context._
+    *
+    *   def whoAmI() = authenticated { context: Authenticated =>
+    *     ...
+    *   }
+    * }}}
+    *
+    * @param successStatus
+    *   the http status for a successful response
+    * @param block
+    *   the block to execute
+    * @param tjs
+    *   the serializer for [[M]]
+    * @tparam M
+    *   the output model type
+    */
   def authenticated[M](successStatus: Status)(
       block: Context with Authenticated => FutureApplicationResult[M]
   )(implicit tjs: Writes[M]): Action[JsValue] = Action.async(EmptyJsonParser) { request =>
@@ -335,18 +341,17 @@ abstract class AbstractJsonController[+A](components: JsonControllerComponents[A
     renderResult(successStatus, result.toFuture)(lang, tjs)
   }
 
-  /**
-   * Sets Ok as the default successStatus.
-   *
-   * Note: The request will be authenticated using your custom [[AbstractAuthenticatorService]].
-   *
-   * Example:
-   * {{{
-   *   def whoAmI() = authenticated { context: Authenticated =>
-   *     ...
-   *   }
-   * }}}
-   */
+  /** Sets Ok as the default successStatus.
+    *
+    * Note: The request will be authenticated using your custom [[AbstractAuthenticatorService]].
+    *
+    * Example:
+    * {{{
+    *   def whoAmI() = authenticated { context: Authenticated =>
+    *     ...
+    *   }
+    * }}}
+    */
   def authenticated[M](
       block: Context with Authenticated => FutureApplicationResult[M]
   )(implicit tjs: Writes[M]): Action[JsValue] = {

@@ -7,9 +7,8 @@ class PublicErrorRenderer {
 
   import PublicErrorRenderer._
 
-  /**
-   * Converts a [[PublicError]] to a [[JsValue]].
-   */
+  /** Converts a [[PublicError]] to a [[JsValue]].
+    */
   def renderPublicError(publicError: PublicError): JsValue = publicError match {
     case e: GenericPublicError =>
       val obj = Json.obj(

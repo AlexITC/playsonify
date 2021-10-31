@@ -6,9 +6,8 @@ import scala.concurrent.{ExecutionContext, Future}
 
 import com.alexitc.playsonify.models.ApplicationError
 
-/**
- * Monad transformer for composing values with [[FutureApplicationResult]] type.
- */
+/** Monad transformer for composing values with [[FutureApplicationResult]] type.
+  */
 class FutureOr[+A](val future: FutureApplicationResult[A]) extends AnyVal {
 
   def toFuture: Future[ApplicationResult[A]] = future

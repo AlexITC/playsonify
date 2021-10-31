@@ -12,14 +12,12 @@ trait FieldOrderingParser[+A] {
 
   protected def defaultOrderingCondition: OrderingCondition = OrderingCondition.AscendingOrder
 
-  /**
-   * Accepts values in the format field[:condition], being condition
-   * an optional argument allowing the these values:
-   * - asc: for ascending order.
-   * - desc: for descending order.
-   *
-   * The empty string is also accepted returning a default ordering.
-   */
+  /** Accepts values in the format field[:condition], being condition an optional argument allowing the these values:
+    *   - asc: for ascending order.
+    *   - desc: for descending order.
+    *
+    * The empty string is also accepted returning a default ordering.
+    */
   def from(orderByQuery: OrderingQuery): ApplicationResult[FieldOrdering[A]] = {
     Option(orderByQuery.string)
       .filter(_.nonEmpty)
