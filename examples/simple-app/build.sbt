@@ -1,6 +1,6 @@
 name := "playsonify-simple-app"
 organization := "com.alexitc"
-scalaVersion := "2.13.6"
+scalaVersion := "2.13.7"
 
 lazy val root = (project in file("."))
   .enablePlugins(PlayScala)
