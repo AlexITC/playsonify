@@ -13,5 +13,5 @@ class MyJsonControllerComponents @Inject() (
     override val executionContext: ExecutionContext,
     override val publicErrorRenderer: PublicErrorRenderer,
     override val i18nService: I18nPlayService,
-    override val authenticatorService: DummyAuthenticatorService)
-    extends JsonControllerComponents[Int]
+    override val authenticatorService: DummyAuthenticatorService
+) extends JsonControllerComponents[Int]
