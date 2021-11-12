@@ -13,6 +13,8 @@ trait MyPlayAPISpec extends PlayAPISpec {
   protected val logger = LoggerFactory.getLogger(this.getClass)
 
   override def log[T](request: FakeRequest[T], response: Future[Result]): Unit = {
-    logger.info(s"REQUEST > $request, headers = ${request.headers}; RESPONSE < status = ${status(response)}, body = ${contentAsString(response)}")
+    logger.info(
+      s"REQUEST > $request, headers = ${request.headers}; RESPONSE < status = ${status(response)}, body = ${contentAsString(response)}"
+    )
   }
 }

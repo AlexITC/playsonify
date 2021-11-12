@@ -9,8 +9,7 @@ import play.api.libs.json.{Json, Reads, Writes}
 
 import scala.concurrent.Future
 
-class HelloWorldController @Inject() (components: MyJsonControllerComponents)
-    extends MyJsonController(components) {
+class HelloWorldController @Inject() (components: MyJsonControllerComponents) extends MyJsonController(components) {
 
   import Context._
 
@@ -31,10 +30,7 @@ class HelloWorldController @Inject() (components: MyJsonControllerComponents)
   }
 
   def failedHello = public[HelloMessage] { context: Context =>
-    val errors = Every(
-      UserError.UserEmailIncorrect,
-      UserError.UserAlreadyExist,
-      UserError.UserNotFound)
+    val errors = Every(UserError.UserEmailIncorrect, UserError.UserAlreadyExist, UserError.UserNotFound)
 
     val badResult = Bad(errors)
     Future.successful(badResult)
@@ -50,7 +46,6 @@ case class Person(name: String, age: Int)
 object Person {
   implicit val reads: Reads[Person] = Json.reads[Person]
 }
-
 
 case class HelloMessage(message: String)
 

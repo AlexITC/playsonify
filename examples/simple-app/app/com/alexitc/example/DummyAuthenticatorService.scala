@@ -13,8 +13,7 @@ import scala.util.Try
 class DummyAuthenticatorService extends AbstractAuthenticatorService[Int] {
 
   override def authenticate(request: Request[JsValue]): FutureApplicationResult[Int] = {
-    val userIdMaybe = request
-      .headers
+    val userIdMaybe = request.headers
       .get(HeaderNames.AUTHORIZATION)
       .flatMap { header => Try(header.toInt).toOption }
 
