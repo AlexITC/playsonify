@@ -25,7 +25,7 @@ inThisBuild(
 
 val playVersion = "2.8.8"
 val scalacticVersion = "3.1.2"
-val scalatestVersion = "3.2.11"
+val scalatestVersion = "3.2.14"
 
 lazy val baseLibSettings: Project => Project = _.settings(
   scalacOptions ++= Seq(
