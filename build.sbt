@@ -23,7 +23,7 @@ inThisBuild(
   )
 )
 
-val playVersion = "2.8.8"
+val playVersion = "2.8.19"
 val scalacticVersion = "3.1.2"
 val scalatestVersion = "3.2.11"
 
