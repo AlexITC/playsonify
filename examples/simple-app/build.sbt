@@ -22,4 +22,4 @@ libraryDependencies += "org.slf4j" % "slf4j-api" % "1.7.36"
 libraryDependencies += "ch.qos.logback" % "logback-core" % "1.2.11"
 libraryDependencies += "ch.qos.logback" % "logback-classic" % "1.2.11"
 
-libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "5.1.0" % Test
+libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "7.0.1" % Test

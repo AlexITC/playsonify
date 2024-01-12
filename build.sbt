@@ -46,7 +46,7 @@ lazy val playSettings: Project => Project = _.settings(
     "-no-link-warnings"
   ),
   libraryDependencies ++= Seq(
-    "org.scalatestplus.play" %% "scalatestplus-play" % "5.1.0"
+    "org.scalatestplus.play" %% "scalatestplus-play" % "7.0.1"
   )
 )
 
